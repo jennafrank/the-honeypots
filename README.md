@@ -392,12 +392,16 @@ To suggest a new Easter egg, open an issue using the [Easter Egg Suggestion](.gi
 
 ## Author
 
-**Built by Jenna Frank — Cybersecurity Student & Researcher**
+**Created by Sable Saint-Claire — Independent Security Researcher**
+
+Threat intelligence analyst and honeypot architect. GitHub: [@sablestclaire](https://github.com/sablestclaire)
 
 *"The best way to understand attackers is to let them think they've won."*
+
+Special thanks to research collaborator [Jenna Frank](https://github.com/jennafrank) for deployment, testing, and documentation support.
 
 ---
 
 ## License
 
-MIT © Jenna Frank — see [LICENSE](LICENSE) for details.
+MIT © Sable Saint-Claire — see [LICENSE](LICENSE) for details.
