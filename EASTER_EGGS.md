@@ -17,6 +17,18 @@ The trigger commands are listed below. The effects are hidden behind spoiler tag
 
 The main event. Hot pink 80s glam terminal sequence: wallet content renders, then glitches out in a pink cascade. A heart rain falls. "CAUGHT YA, CUTIE" appears in large ASCII art. The attacker's IP, location, ISP, and every command they typed is printed back to them. Signed by Sable Saint-Claire & The Honeypots. Their IP is banned for 60 seconds. The session closes.
 
+<p align="center">
+<img src="docs/screenshots/1_The_Crown_Jewel.png" width="600"/>
+</p>
+
+<p align="center">
+<img src="docs/screenshots/1_The_Crown_Jewel2.png" width="600"/>
+</p>
+
+<p align="center">
+<img src="docs/screenshots/1_The_Crown_Jewel3.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -29,6 +41,14 @@ The main event. Hot pink 80s glam terminal sequence: wallet content renders, the
 <summary>⚠️ Spoiler</summary>
 
 A fully interactive terminal Snake game launches in place of the process monitor. The board is 36×18 characters. Arrow keys move the snake. The game runs at ~7fps. Score is tracked. Game over screen included. Ctrl+C exits.
+
+<p align="center">
+<img src="docs/screenshots/2_This_Is_Not_a_Process_List.png" width="600"/>
+</p>
+
+<p align="center">
+<img src="docs/screenshots/2_This_Is_Not_a_Process_List2.png" width="600"/>
+</p>
 
 </details>
 
@@ -43,6 +63,10 @@ A fully interactive terminal Snake game launches in place of the process monitor
 
 Full-screen 10-second gold coin rain animation with a giant "WINNER" ASCII banner. Coin drops stream down the terminal in bright yellow. This is the one reward in the whole system — for the attacker curious enough to read `whoami --help` or try flags.
 
+<p align="center">
+<img src="docs/screenshots/3_The_Secret_Flag.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -55,6 +79,10 @@ Full-screen 10-second gold coin rain animation with a giant "WINNER" ASCII banne
 <summary>⚠️ Spoiler</summary>
 
 A fake cascading disk wipe fires: hundreds of file deletion lines stream past at realistic speed. Then an infinite spinner appears — "Removing..." with dots that never stop. The session hangs indefinitely.
+
+<p align="center">
+<img src="docs/screenshots/4_The_Classic.png" width="600"/>
+</p>
 
 </details>
 
@@ -69,6 +97,10 @@ A fake cascading disk wipe fires: hundreds of file deletion lines stream past at
 
 The archive appears to extract three deeply suspicious files — `exfil_keys_march2024.tar`, `validator_seed_FINAL.bin`, `wallet_backup_encrypted.dat` — before each one fails with a CRC error. Then a README.txt extracts successfully. The `cat README.txt` that follows is left as a further exercise.
 
+<p align="center">
+<img src="docs/screenshots/5_The_Dare.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -81,6 +113,10 @@ The archive appears to extract three deeply suspicious files — `exfil_keys_mar
 <summary>⚠️ Spoiler</summary>
 
 A convincing fake download progress bar appears — file size, transfer speed, ETA — then the malware injection scare sequence fires: fake compilation output, rootkit installation lines, persistence mechanisms being written, `/etc/cron.d/` entries appearing. The sequence is timed to feel real.
+
+<p align="center">
+<img src="docs/screenshots/6_Ingress_Tool_Transfer.png" width="600"/>
+</p>
 
 </details>
 
@@ -95,6 +131,10 @@ A convincing fake download progress bar appears — file size, transfer speed, E
 
 Identical malware scare to `wget`. Different command, same consequence.
 
+<p align="center">
+<img src="docs/screenshots/7_Same_Energy.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -108,6 +148,10 @@ Identical malware scare to `wget`. Different command, same consequence.
 
 The malware injection scare sequence. `chmod +x` on anything triggers it — the honeypot infers intent.
 
+<p align="center">
+<img src="docs/screenshots/8_Making_Things_Executable.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -120,6 +164,10 @@ The malware injection scare sequence. `chmod +x` on anything triggers it — the
 <summary>⚠️ Spoiler</summary>
 
 Requesting an interactive Bash subshell fires the malware scare. The attacker wanted a real shell. They did not get one.
+
+<p align="center">
+<img src="docs/screenshots/9_Spawn_Attempt.png" width="600"/>
+</p>
 
 </details>
 
@@ -199,6 +247,10 @@ A fully interactive ssh-keygen flow: key type, file path, passphrase (twice), th
 
 A convincing password change flow. The current password is captured and logged (without echo). The new password is captured and logged (with asterisk masking). "passwd: password updated successfully" is returned. Nothing about the shell changes — but the attempted credentials are now in the database.
 
+<p align="center">
+<img src="docs/screenshots/15_Credential_Harvest.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -212,6 +264,10 @@ A convincing password change flow. The current password is captured and logged (
 
 The cursor becomes visible and blinks. The command appears to hang. It hangs forever. No output. No error. No progress. Just a blinking cursor and infinite wait. The session must be killed externally.
 
+<p align="center">
+<img src="docs/screenshots/16_The_Nuclear_Option.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -224,6 +280,10 @@ The cursor becomes visible and blinks. The command appears to hang. It hangs for
 <summary>⚠️ Spoiler</summary>
 
 "Disconnecting..." appears, followed by a 1.5-second pause. The shell prompt returns. The session continues. You can type `exit` as many times as you like. You are never leaving.
+
+<p align="center">
+<img src="docs/screenshots/17_The_Hotel_California.png" width="600"/>
+</p>
 
 </details>
 

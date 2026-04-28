@@ -96,14 +96,30 @@ Every command is automatically tagged against the MITRE ATT&CK framework. Techni
 
 ## Screenshots
 
-| | |
-|:---:|:---:|
-| ![Dashboard](docs/screenshots/Dashboard.png) | ![Login Screen](docs/screenshots/Login_Screen.png) |
-| **[Dashboard]** Real-time SSE analytics | **[Login Screen]** What attackers see on connect |
-| ![Wallet Gotcha](docs/screenshots/Wallet_Gotcha.png) | ![Snake Game](docs/screenshots/Snake_Game.png) |
-| **[Wallet Gotcha]** The Sable Saint-Claire reveal | **[Snake Game]** `top` isn't what they expected |
-| ![Malware Scare](docs/screenshots/Malware_Scare.png) | |
-| **[Malware Scare]** `wget` consequences | |
+<p align="center">
+<img src="docs/screenshots/Dashboard.png" width="600" alt="Dashboard"/>
+</p>
+<p align="center"><em>Real-time SSE analytics dashboard</em></p>
+
+<p align="center">
+<img src="docs/screenshots/Login_Screen.png" width="600" alt="Login Screen"/>
+</p>
+<p align="center"><em>What attackers see on connect</em></p>
+
+<p align="center">
+<img src="docs/screenshots/Wallet_Gotcha.png" width="600" alt="Wallet Gotcha"/>
+</p>
+<p align="center"><em>The Sable Saint-Claire reveal</em></p>
+
+<p align="center">
+<img src="docs/screenshots/Snake_Game.png" width="600" alt="Snake Game"/>
+</p>
+<p align="center"><em>`top` isn't what they expected</em></p>
+
+<p align="center">
+<img src="docs/screenshots/Malware_Scare.png" width="600" alt="Malware Scare"/>
+</p>
+<p align="center"><em>`wget` consequences</em></p>
 
 ---
 
@@ -132,57 +148,6 @@ Below are the trigger commands — but **not** what they do. That's for you to f
 | 15 | `passwd` | Someone's trying to change the password. We noticed. |
 | 16 | `mkfs.ext4 /dev/sda` | The nuclear option. |
 | 17 | `exit` | *"You can check out any time you like..."* |
-
-**1 — The Crown Jewel** (`cat wallet.json`)
-
-![The Crown Jewel](docs/screenshots/1_The_Crown_Jewel.png)
-![The Crown Jewel 2](docs/screenshots/1_The_Crown_Jewel2.png)
-![The Crown Jewel 3](docs/screenshots/1_The_Crown_Jewel3.png)
-
-**2 — This Is Not a Process List** (`top`)
-
-![This Is Not a Process List](docs/screenshots/2_This_Is_Not_a_Process_List.png)
-![This Is Not a Process List 2](docs/screenshots/2_This_Is_Not_a_Process_List2.png)
-
-**3 — The Secret Flag** (`whoami --verbose`)
-
-![The Secret Flag](docs/screenshots/3_The_Secret_Flag.png)
-
-**4 — The Classic** (`rm -rf /`)
-
-![The Classic](docs/screenshots/4_The_Classic.png)
-
-**5 — The Dare** (`unzip DO_NOT_OPEN.zip`)
-
-![The Dare](docs/screenshots/5_The_Dare.png)
-
-**6 — Ingress Tool Transfer** (`wget <url>`)
-
-![Ingress Tool Transfer](docs/screenshots/6_Ingress_Tool_Transfer.png)
-
-**7 — Same Energy** (`curl <url>`)
-
-![Same Energy](docs/screenshots/7_Same_Energy.png)
-
-**8 — Making Things Executable** (`chmod +x <file>`)
-
-![Making Things Executable](docs/screenshots/8_Making_Things_Executable.png)
-
-**9 — Spawn Attempt** (`bash -i`)
-
-![Spawn Attempt](docs/screenshots/9_Spawn_Attempt.png)
-
-**15 — Credential Harvest** (`passwd`)
-
-![Credential Harvest](docs/screenshots/15_Credential_Harvest.png)
-
-**16 — The Nuclear Option** (`mkfs.ext4 /dev/sda`)
-
-![The Nuclear Option](docs/screenshots/16_The_Nuclear_Option.png)
-
-**17 — The Hotel California** (`exit`)
-
-![The Hotel California](docs/screenshots/17_The_Hotel_California.png)
 
 > 💡 Want to add one? See [CONTRIBUTING.md](CONTRIBUTING.md) and [EASTER_EGGS.md](EASTER_EGGS.md).
 
