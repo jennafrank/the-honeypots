@@ -182,6 +182,10 @@ Requesting an interactive Bash subshell fires the malware scare. The attacker wa
 
 The malware scare again. Any attempt to execute something local with `./` is treated as a post-download payload execution attempt. The response is theatrical.
 
+<p align="center">
+<img src="docs/screenshots/10_Running_What_You_Downloaded.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -194,6 +198,10 @@ The malware scare again. Any attempt to execute something local with `./` is tre
 <summary>⚠️ Spoiler</summary>
 
 A retro "ACCESS GRANTED" ASCII art sequence renders in bright green and cyan — complete with fake status lines: ROOT ACCESS GRANTED, PRIVILEGE ESCALATION COMPLETE, AUDIT LOGS PURGED, BACKDOOR INSTALLED. The attacker is then silently dropped into a root shell. Every subsequent command runs as root. The session is flagged as high-interest.
+
+<p align="center">
+<img src="docs/screenshots/11_The_Escalation.png" width="600"/>
+</p>
 
 </details>
 
@@ -208,6 +216,10 @@ A retro "ACCESS GRANTED" ASCII art sequence renders in bright green and cyan —
 
 The file renders once — containing convincingly formatted Solana private keys for the validator identity, vote account, and withdraw authority. Then: "Warning: this file self-destructs after 1 read. File deleted." The file disappears from the filesystem. Subsequent `ls` and `cat` commands return nothing.
 
+<p align="center">
+<img src="docs/screenshots/12_Self_Destructing_Intelligence.png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -221,6 +233,10 @@ The file renders once — containing convincingly formatted Solana private keys 
 
 A fully functional-feeling Python 3.10.12 REPL launches. It echoes input, handles `>>>` and `...` prompts, recognizes `exit()` and `quit()`. Every 5th command, regardless of input, crashes with a `MemoryError` and clears the terminal. The banner reprints and the REPL continues. This loop never stops on its own.
 
+<p align="center">
+<img src="docs/screenshots/13 _The_REPL .png" width="600"/>
+</p>
+
 </details>
 
 ---
@@ -233,6 +249,10 @@ A fully functional-feeling Python 3.10.12 REPL launches. It echoes input, handle
 <summary>⚠️ Spoiler</summary>
 
 A fully interactive ssh-keygen flow: key type, file path, passphrase (twice), then a convincing fingerprint and randomart output. Then: "`<path>` already exists. Overwrite (y/n)?" — for every answer including `y`, `n`, and Ctrl+C, the prompt repeats. Infinite overwrite loop. The only escape is closing the connection.
+
+<p align="center">
+<img src="docs/screenshots/14_Persistence_Attempt.png" width="600"/>
+</p>
 
 </details>
 
