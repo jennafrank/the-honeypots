@@ -1,0 +1,45 @@
+services:
+
+  honeypot:
+    build: .
+    container_name: honeypot-ssh
+    command: python -m honeypot.main
+    ports:
+      - "0.0.0.0:22:22"
+    volumes:
+      - ./data:/data
+    env_file:
+      - .env
+    environment:
+      - HONEYPOT_PORT=22
+      - DB_PATH=/data/db/honeypot.db
+      - LOG_PATH=/data/logs/events.jsonl
+      - SSH_HOST_KEY=/data/ssh/host_key
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  dashboard:
+    build: .
+    container_name: honeypot-dashboard
+    command: python dashboard/app.py
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    env_file:
+      - .env
+    environment:
+      - DASHBOARD_PORT=8080
+      - DB_PATH=/data/db/honeypot.db
+    depends_on:
+      - honeypot
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
