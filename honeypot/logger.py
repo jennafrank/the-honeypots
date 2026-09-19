@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .db import insert_event, upsert_session
+from .db import insert_easter_egg_hit, insert_event, upsert_session
 from .session import SessionState
 
 LOG_PATH = os.environ.get("LOG_PATH", "/data/logs/events.jsonl")
@@ -88,6 +88,28 @@ def log_enrichment(session: SessionState) -> None:
     }
     _append_jsonl(data)
     insert_event(session.session_id, "enrichment", data)
+    upsert_session(session.to_dict())
+
+
+def log_easter_egg(session: SessionState, egg_name: str) -> None:
+    """Log an Easter egg trigger — deduplicated per session per egg."""
+    if egg_name in session.easter_eggs_triggered:
+        return
+    session.easter_eggs_triggered.append(egg_name)
+    hour = datetime.now(timezone.utc).hour
+    data = {
+        "event": "easter_egg",
+        "egg_name": egg_name,
+        "session_id": session.session_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "source_ip": session.source_ip,
+    }
+    _append_jsonl(data)
+    insert_event(session.session_id, "easter_egg", data)
+    insert_easter_egg_hit(
+        egg_name, session.session_id, session.source_ip,
+        session.geo_country, session.geo_country_code, hour,
+    )
     upsert_session(session.to_dict())
 
 

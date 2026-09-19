@@ -18,12 +18,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from honeypot.db import (
+    abandonment_stats,
     command_frequency,
+    credential_patterns,
+    easter_egg_leaderboard,
+    first_cmd_stats,
     high_interest_sessions,
+    hourly_heatmap,
     hourly_volume,
     init_db,
     mitre_frequency,
     recent_sessions,
+    return_visitors,
+    sophistication_distribution,
     stats_today,
     top_asns,
     top_countries,
@@ -55,6 +62,13 @@ def build_markdown(hours: int = 48) -> str:
     hourly = hourly_volume(hours)
     hi_sessions = high_interest_sessions(20)
     recent = recent_sessions(100)
+    cred_patterns = credential_patterns()
+    heatmap = hourly_heatmap()
+    first_cmds = first_cmd_stats()
+    abandonment = abandonment_stats()
+    egg_leaderboard = easter_egg_leaderboard()
+    soph_dist = sophistication_distribution()
+    return_vis = return_visitors(20)
 
     total_sessions = len(recent)
     cloud_count = sum(1 for s in recent if s.get("is_cloud"))
@@ -186,6 +200,174 @@ or execution of credential-access / lateral-movement commands).
             narrative = _narrative(s, cmds_list)
             if narrative:
                 md += f"**Analysis:** {narrative}\n\n"
+
+    # ── Attacker sophistication ───────────────────────────────────────────────
+    md += "## Attacker Sophistication Analysis\n\n"
+    scored = [s for s in recent if s.get("sophistication_score", 0) > 0]
+    if scored:
+        avg_score = sum(s["sophistication_score"] for s in scored) / len(scored)
+        advanced = sum(1 for s in scored if s["sophistication_score"] >= 7)
+        md += f"Sessions were scored 1–10 based on command diversity, anti-forensics usage, "
+        md += f"/dev/tcp tunneling, download attempts, and MITRE tactic breadth.\n\n"
+        md += f"**Average score:** {avg_score:.1f} / 10 across {len(scored)} scored sessions  \n"
+        md += f"**Advanced actors (7+):** {advanced} ({_pct(advanced, len(scored))})\n\n"
+        md += "```\n"
+        max_c = max((d["count"] for d in soph_dist), default=1)
+        for d in soph_dist:
+            if d["count"] == 0:
+                continue
+            label = "script-kiddie" if d["score"] <= 3 else "moderate" if d["score"] <= 6 else "advanced"
+            bar = _bar(d["count"], max_c, 20)
+            md += f"Score {d['score']:2d} [{label:<14}]  {d['count']:>5}  {bar}\n"
+        md += "```\n\n"
+
+        # Top sophisticated sessions
+        top_soph = sorted(scored, key=lambda s: s.get("sophistication_score", 0), reverse=True)[:5]
+        md += "### Top Sophisticated Sessions\n\n"
+        md += "| IP | Score | Duration | Commands | First Category | Easter Eggs |\n"
+        md += "|----|-------|----------|----------|---------------|-------------|\n"
+        for s in top_soph:
+            eggs = ", ".join(s.get("easter_eggs_triggered", [])) or "—"
+            md += (f"| `{s['source_ip']}` | {s.get('sophistication_score',0)} | "
+                   f"{int(s.get('duration_seconds',0))}s | {s.get('command_count',0)} | "
+                   f"{s.get('first_cmd_category','—')} | {eggs} |\n")
+        md += "\n"
+    else:
+        md += "*No scored sessions in this period.*\n\n"
+
+    # ── Credential pattern analysis ───────────────────────────────────────────
+    md += "## Credential Pattern Analysis\n\n"
+    if cred_patterns:
+        total_patterned = sum(p["count"] for p in cred_patterns)
+        md += "| Pattern | Count | Share |\n"
+        md += "|---------|-------|-------|\n"
+        pattern_labels = {
+            "service_default": "Service Default (root/admin/ubuntu)",
+            "iot_default": "IoT Default (hikadmin/xmhdipc)",
+            "crypto_related": "Crypto-Related (wallet/solana/btc)",
+            "keyboard_walk": "Keyboard Walk (qwerty/123456)",
+            "numeric_only": "Numeric Only",
+            "dictionary_word": "Dictionary Word",
+            "pubkey": "SSH Public Key",
+            "custom": "Custom / Mixed",
+        }
+        for p in cred_patterns:
+            label = pattern_labels.get(p["password_pattern"], p["password_pattern"])
+            md += f"| {label} | {p['count']} | {_pct(p['count'], total_patterned)} |\n"
+        md += "\n"
+        dominant = cred_patterns[0] if cred_patterns else None
+        if dominant:
+            md += f"> **Key finding:** `{dominant['password_pattern']}` credentials dominate "
+            md += f"at {_pct(dominant['count'], total_patterned)} of attempts.\n\n"
+    else:
+        md += "*No credential pattern data available.*\n\n"
+
+    # ── Return visitor analysis ───────────────────────────────────────────────
+    md += "## Return Visitor Analysis\n\n"
+    if return_vis:
+        md += f"**{len(return_vis)} unique IPs** have connected more than once.\n\n"
+        md += "| IP | Visits | Country | First Seen | Last Seen | Total Commands |\n"
+        md += "|----|--------|---------|------------|-----------|----------------|\n"
+        for rv in return_vis[:10]:
+            first = rv.get("first_seen", "")[:16].replace("T", " ")
+            last = rv.get("last_seen", "")[:16].replace("T", " ")
+            md += (f"| `{rv['source_ip']}` | {rv['total_visits']} | "
+                   f"{rv.get('geo_country','—')} | {first} | {last} | "
+                   f"{rv.get('total_commands', 0)} |\n")
+        md += "\n"
+    else:
+        md += "*No return visitors detected in this period.*\n\n"
+
+    # ── Time-of-day heatmap ───────────────────────────────────────────────────
+    md += "## Time-of-Day Attack Patterns (UTC)\n\n"
+    md += "```\n"
+    md += f"{'Hour (UTC)':<14} {'Count':>6}  Histogram\n"
+    md += "-" * 50 + "\n"
+    max_h = max((h["count"] for h in heatmap), default=1)
+    for h in heatmap:
+        bar = _bar(h["count"], max_h, 24)
+        md += f"{str(h['hour']).zfill(2) + ':00':<14} {h['count']:>6}  {bar}\n"
+    md += "```\n"
+    peak = max(heatmap, key=lambda h: h["count"], default={"hour": 0, "count": 0})
+    if peak["count"] > 0:
+        # UTC hour to likely timezone range
+        peak_h = peak["hour"]
+        if 8 <= peak_h <= 18:
+            tz_hint = "daytime UTC → likely EU/Africa"
+        elif 0 <= peak_h <= 6:
+            tz_hint = "UTC night → likely Asia/Pacific"
+        else:
+            tz_hint = "UTC evening → likely Americas"
+        md += f"\n> Peak at **{str(peak_h).zfill(2)}:00 UTC** ({peak['count']} attacks) — "
+        md += f"suggests {tz_hint}.\n\n"
+    else:
+        md += "\n"
+
+    # ── First command fingerprinting ──────────────────────────────────────────
+    md += "## First Command Fingerprinting\n\n"
+    md += "The first command an attacker runs reveals their primary intent.\n\n"
+    if first_cmds:
+        total_fc = sum(f["count"] for f in first_cmds)
+        md += "| Category | Count | Share | Interpretation |\n"
+        md += "|----------|-------|-------|-----------------|\n"
+        interp = {
+            "recon": "Basic system survey before deciding next steps",
+            "crypto_hunting": "Specifically targeting Solana/crypto assets",
+            "persistence": "Immediately trying to establish access",
+            "download": "Payload delivery — drop-and-execute pattern",
+            "lateral_movement": "Pivoting to other systems",
+            "anti_forensics": "Covering tracks before exploring",
+            "escalation": "Privilege escalation attempt",
+            "enumeration": "Cautious filesystem survey",
+            "other": "Miscellaneous or custom tooling",
+        }
+        for f in first_cmds:
+            cat = f["first_cmd_category"]
+            md += (f"| {cat} | {f['count']} | {_pct(f['count'], total_fc)} | "
+                   f"{interp.get(cat, '—')} |\n")
+        md += "\n"
+    else:
+        md += "*No first command data available.*\n\n"
+
+    # ── Session abandonment analysis ──────────────────────────────────────────
+    md += "## Session Abandonment Analysis\n\n"
+    md += (f"Of **{abandonment['total']} total sessions**, "
+           f"**{abandonment['abandoned']} ({abandonment['rate']}%)** connected but ran zero commands "
+           f"(pure credential-stuffing bots or port scanners).\n"
+           f"**{abandonment['explored']} sessions** proceeded to issue at least one command.\n\n")
+
+    # ── Easter egg hit tracking ───────────────────────────────────────────────
+    md += "## Easter Egg Hit Tracking\n\n"
+    if egg_leaderboard:
+        total_egg_hits = sum(e["hit_count"] for e in egg_leaderboard)
+        md += f"**{total_egg_hits} trap triggers** across {len(egg_leaderboard)} distinct Easter eggs.\n\n"
+        md += "| Easter Egg | Hits | Unique IPs | Countries |\n"
+        md += "|-----------|------|------------|----------|\n"
+        egg_names = {
+            "crown_jewel": "Crown Jewel (cat wallet.json)",
+            "snake_game": "Snake Game (top/htop)",
+            "secret_flag": "Secret Flag (whoami --verbose)",
+            "classic_rm": "The Classic (rm -rf /)",
+            "dare_zip": "The Dare (unzip DO_NOT_OPEN.zip)",
+            "wget": "Ingress Tool Transfer (wget)",
+            "curl": "Same Energy (curl)",
+            "chmod_exe": "Making Things Executable (chmod +x)",
+            "bash_spawn": "Spawn Attempt (bash -i)",
+            "run_payload": "Running Payload (./)",
+            "escalation": "The Escalation (tripwire)",
+            "self_destruct": "Self-Destructing Intelligence (private_keys)",
+            "python_repl": "The REPL (python3)",
+            "ssh_keygen": "Persistence Attempt (ssh-keygen)",
+            "passwd_harvest": "Credential Harvest (passwd)",
+            "nuclear_option": "Nuclear Option (mkfs)",
+            "hotel_california": "Hotel California (exit)",
+        }
+        for e in egg_leaderboard:
+            name = egg_names.get(e["egg_name"], e["egg_name"])
+            md += f"| {name} | {e['hit_count']} | {e['unique_ips']} | {e['country_count']} |\n"
+        md += "\n"
+    else:
+        md += "*No Easter egg triggers recorded in this period.*\n\n"
 
     # ── Canary tokens ─────────────────────────────────────────────────────────
     md += "## Canary Token Observations\n\n"

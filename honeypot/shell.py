@@ -19,6 +19,11 @@ def _log_command(session, command, tags):
     from .logger import log_command
     log_command(session, command, tags)
 
+
+def _log_easter_egg(session, egg_name):
+    from .logger import log_easter_egg
+    log_easter_egg(session, egg_name)
+
 # ── ANSI helpers ─────────────────────────────────────────────────────────────
 _RESET = "\x1b[0m"
 _BOLD  = "\x1b[1m"
@@ -597,6 +602,7 @@ class FakeShell:
             tags = tag_command(cmd)
             self.session.add_command(cmd, tags, 0)
             _log_command(self.session, cmd, tags)
+            _log_easter_egg(self.session, "hotel_california")
             write("Disconnecting...\r\n")
             await asyncio.sleep(1.5)
             return True  # don't actually exit
@@ -616,6 +622,7 @@ class FakeShell:
         # Tripwire: ACCESS GRANTED art, then silently drop to root
         if is_tripwire(cmd):
             self.session.high_interest = True
+            _log_easter_egg(self.session, "escalation")
             await _send_easter_egg(write)
             first = cmd.split()[0] if cmd else ""
             if first in ("su", "bash", "sh") or re.match(r"^-[si]?$", first):
@@ -755,21 +762,25 @@ class FakeShell:
 
         # Executable run: ./ prefix → malware scare
         if base.startswith("./"):
+            _log_easter_egg(self.session, "run_payload")
             await _fake_malware_injection(write)
             return None
 
         # bash -i → malware scare
         if base == "bash" and "-i" in args:
+            _log_easter_egg(self.session, "bash_spawn")
             await _fake_malware_injection(write)
             return None
 
         # wget / curl → malware scare (replaces fake download)
         if base in ("wget", "curl"):
+            _log_easter_egg(self.session, base)
             await _fake_malware_injection(write)
             return None
 
         # chmod +x → malware scare
         if base == "chmod" and "+x" in " ".join(args):
+            _log_easter_egg(self.session, "chmod_exe")
             await _fake_malware_injection(write)
             return None
 
@@ -777,10 +788,12 @@ class FakeShell:
         if base in ("cat", "less", "more"):
             file_paths = [resolve_path(self.cwd, a) for a in args if not a.startswith("-")]
             if any(a.split("/")[-1] == "wallet.json" for a in args if not a.startswith("-")):
+                _log_easter_egg(self.session, "crown_jewel")
                 await _fake_wallet_gotcha(self.session, write)
                 self._close_session = True
                 return None
             if any(p == "/home/solana/private_keys_backup.txt" for p in file_paths):
+                _log_easter_egg(self.session, "self_destruct")
                 content = read_file("/home/solana/private_keys_backup.txt") or ""
                 write(content.replace("\n", "\r\n"))
                 await asyncio.sleep(1.0)
@@ -791,6 +804,7 @@ class FakeShell:
             return self._cmd_cat(args, write)
 
         if base in ("python", "python3"):
+            _log_easter_egg(self.session, "python_repl")
             await self._cmd_python_repl(args, write)
             return None
 
@@ -803,6 +817,7 @@ class FakeShell:
             return None
 
         if base == "passwd":
+            _log_easter_egg(self.session, "passwd_harvest")
             await self._cmd_passwd(args, write)
             return None
 
@@ -811,15 +826,18 @@ class FakeShell:
             return None
 
         if base == "ssh-keygen":
+            _log_easter_egg(self.session, "ssh_keygen")
             await self._cmd_ssh_keygen(args, write)
             return None
 
         if base in ("format", "mkfs") or base.startswith("mkfs."):
+            _log_easter_egg(self.session, "nuclear_option")
             await self._cmd_mkfs(args, write)
             return None
 
         # whoami --verbose → winner Easter egg
         if base == "whoami" and "--verbose" in args:
+            _log_easter_egg(self.session, "secret_flag")
             await self._cmd_winner(args, write)
             return None
 
@@ -1137,6 +1155,7 @@ class FakeShell:
                         or p.startswith("/*") for p in paths)
         if is_recursive and dangerous:
             self.session.high_interest = True
+            _log_easter_egg(self.session, "classic_rm")
             return _fake_rm_rf(write)  # returns coroutine; caller awaits
         return None
 
@@ -1238,6 +1257,7 @@ class FakeShell:
         filename = next((a for a in args if not a.startswith("-")), "")
         if "DO_NOT_OPEN" in filename:
             self.session.high_interest = True
+            _log_easter_egg(self.session, "dare_zip")
             await _fake_do_not_open(write)
             return
         if filename:
@@ -1363,6 +1383,7 @@ class FakeShell:
             )
 
         self.session.high_interest = True
+        _log_easter_egg(self.session, "snake_game")
 
         # ── Game constants ────────────────────────────────────────────────
         BW, BH = 36, 18           # playable board (cols, rows)

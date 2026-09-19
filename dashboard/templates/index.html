@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SSH Honeypot Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     :root {
       --bg: #0d1117; --surface: #161b22; --border: #30363d;
@@ -29,16 +29,36 @@
     /* ── stat cards ── */
     .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
                  padding: 16px 20px 0; }
+    .stats-row-2 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
+                   padding: 8px 20px 0; }
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
                  padding: 16px 20px; }
+    .stat-card.compact { padding: 10px 16px; }
     .stat-card .label { color: var(--muted); font-size: 11px; text-transform: uppercase;
                         letter-spacing: 1px; margin-bottom: 6px; }
     .stat-card .value { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .stat-card.compact .value { font-size: 22px; }
     .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* ── analytics section ── */
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+                      padding: 12px 20px; }
+    .analytics-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+                        padding: 0 20px 12px; }
+
+    /* ── soph score badges ── */
+    .soph-bar { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+    .soph-label { width: 18px; text-align: right; color: var(--muted); font-size: 10px; }
+    .soph-track { flex: 1; height: 6px; background: rgba(255,255,255,.07); border-radius: 3px; }
+    .soph-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+    .badge-return { background: rgba(210,153,34,.15); color: var(--yellow); padding: 1px 6px;
+                    border-radius: 4px; font-size: 10px; }
+    .badge-egg { background: rgba(63,185,80,.15); color: var(--green); padding: 1px 6px;
+                 border-radius: 4px; font-size: 10px; margin-right: 3px; }
 
     /* ── main grid ── */
     .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 12px;
-                 padding: 12px 20px; height: calc(100vh - 195px); }
+                 padding: 12px 20px; height: calc(100vh - 250px); }
     .left-col { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
     .right-col { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 
@@ -52,12 +72,12 @@
     .panel-body { padding: 12px 16px; }
 
     /* ── map ── */
-    #map { height: 340px; background: #0a0e14; }
+    #map { height: 255px; background: #0a0e14; }
     .leaflet-container { background: #0a0e14 !important; }
 
     /* ── charts ── */
     .chart-wrap { position: relative; }
-    canvas { max-width: 100%; }
+    canvas { max-width: 100%; display: block; }
 
     /* ── timeline ── */
     #timeline-panel { flex-shrink: 0; }
@@ -102,6 +122,25 @@
       .main-grid { grid-template-columns: 1fr; height: auto; }
       .stats-row { grid-template-columns: repeat(2,1fr); }
     }
+
+    /* ── time-range toggle ── */
+    .range-toggle { display:flex; gap:2px; background:rgba(255,255,255,.06); padding:2px; border-radius:6px; }
+    .range-btn { background:transparent; border:none; color:var(--muted); padding:3px 14px;
+                 border-radius:4px; cursor:pointer; font:11px/1.4 'SF Mono','Fira Code',monospace;
+                 transition:background .15s, color .15s; }
+    .range-btn.active { background:var(--accent); color:#fff; }
+    .range-btn:not(.active):hover { color:var(--text); background:rgba(255,255,255,.08); }
+
+    /* ── live command feed ── */
+    .cmd-feed-wrap { padding:0 20px 20px; }
+    #cmd-feed { height:200px; overflow-y:auto; padding:6px 10px; background:#0a0e14;
+                font:12px/1.6 'SF Mono','Fira Code',monospace; }
+    .feed-line { display:flex; gap:10px; padding:1px 0; border-bottom:1px solid rgba(48,54,61,.3); }
+    .feed-line:last-child { border-bottom:none; }
+    .feed-ts  { color:var(--muted); flex-shrink:0; }
+    .feed-ip  { color:var(--accent); flex-shrink:0; min-width:130px; }
+    .feed-cmd { color:var(--green); flex:1; word-break:break-all; }
+    .feed-tags { flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -111,29 +150,57 @@
   <h1>🛡 SSH Honeypot — Live Dashboard</h1>
   <span class="badge-live">● LIVE</span>
   <span id="last-updated">Connecting…</span>
+  <div class="range-toggle" style="margin-left:8px;">
+    <button id="range-all" class="range-btn active" onclick="setRange('all')">All Time</button>
+    <button id="range-24h" class="range-btn" onclick="setRange('24h')">Last 24h</button>
+  </div>
 </div>
 
-<!-- Stat cards -->
+<!-- Stat cards row 1 -->
 <div class="stats-row">
   <div class="stat-card">
-    <div class="label">Connections Today</div>
+    <div class="label" id="lbl-connections">All Connections</div>
     <div class="value" id="stat-connections">—</div>
     <div class="sub" id="stat-active">Loading…</div>
   </div>
   <div class="stat-card">
-    <div class="label">Unique IPs Today</div>
+    <div class="label" id="lbl-unique">All Unique IPs</div>
     <div class="value" id="stat-unique">—</div>
     <div class="sub">Distinct source addresses</div>
   </div>
   <div class="stat-card">
-    <div class="label">Commands Typed</div>
+    <div class="label" id="lbl-commands">Total Commands</div>
     <div class="value" id="stat-commands">—</div>
-    <div class="sub">Across all sessions today</div>
+    <div class="sub">Across all sessions</div>
   </div>
   <div class="stat-card">
-    <div class="label">High-Interest Sessions</div>
+    <div class="label" id="lbl-hi">High-Interest Sessions</div>
     <div class="value" id="stat-hi" style="color:var(--red)">—</div>
     <div class="sub">&gt;60s or sensitive commands</div>
+  </div>
+</div>
+
+<!-- Stat cards row 2 — advanced metrics -->
+<div class="stats-row-2">
+  <div class="stat-card compact">
+    <div class="label" id="lbl-abandon">Abandonment Rate</div>
+    <div class="value" id="stat-abandon" style="color:var(--yellow)">—</div>
+    <div class="sub">Sessions with 0 commands</div>
+  </div>
+  <div class="stat-card compact">
+    <div class="label" id="lbl-return">Return Visitors</div>
+    <div class="value" id="stat-return" style="color:var(--purple)">—</div>
+    <div class="sub">IPs seen before</div>
+  </div>
+  <div class="stat-card compact">
+    <div class="label" id="lbl-soph">Avg Sophistication</div>
+    <div class="value" id="stat-soph" style="color:var(--green)">—</div>
+    <div class="sub">Score 1–10</div>
+  </div>
+  <div class="stat-card compact">
+    <div class="label" id="lbl-eggs">Easter Egg Hits</div>
+    <div class="value" id="stat-eggs" style="color:var(--accent)">—</div>
+    <div class="sub">Trap triggers fired</div>
   </div>
 </div>
 
@@ -153,10 +220,10 @@
     </div>
 
     <!-- Timeline -->
-    <div class="panel" id="timeline-panel" style="flex:0 0 140px;">
+    <div class="panel" id="timeline-panel" style="flex:0 0 195px;">
       <div class="panel-header">Hourly Attack Volume (24h)</div>
-      <div class="panel-body" style="padding: 8px 16px;">
-        <canvas id="timeline-chart" height="80"></canvas>
+      <div class="panel-body" style="padding: 8px 16px; height: 155px; position:relative;">
+        <canvas id="timeline-chart"></canvas>
       </div>
     </div>
 
@@ -196,8 +263,8 @@
     <!-- Top countries -->
     <div class="panel">
       <div class="panel-header">Top Countries</div>
-      <div class="panel-body" style="padding:8px;">
-        <canvas id="country-chart" height="160"></canvas>
+      <div class="panel-body" style="padding:8px; height:200px; position:relative;">
+        <canvas id="country-chart"></canvas>
       </div>
     </div>
 
@@ -224,9 +291,90 @@
   </div>
 </div>
 
+<!-- Analytics section -->
+<div class="analytics-grid">
+
+  <!-- Time-of-day heatmap -->
+  <div class="panel">
+    <div class="panel-header">
+      <span>Time-of-Day Heatmap (UTC)</span>
+      <span style="color:var(--muted);font-size:10px">peak hour hints at attacker TZ</span>
+    </div>
+    <div class="panel-body" style="padding:8px 16px; height:190px;">
+      <canvas id="heatmap-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Credential patterns -->
+  <div class="panel">
+    <div class="panel-header">Credential Pattern Analysis</div>
+    <div class="panel-body" style="padding:8px; height:190px;">
+      <canvas id="cred-pattern-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- First command fingerprinting -->
+  <div class="panel">
+    <div class="panel-header">First Command Fingerprinting</div>
+    <div class="panel-body" style="padding:8px; height:190px;">
+      <canvas id="first-cmd-chart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<div class="analytics-grid-2">
+
+  <!-- Easter egg leaderboard -->
+  <div class="panel">
+    <div class="panel-header">
+      <span>Easter Egg Leaderboard</span>
+      <span id="egg-total" style="color:var(--green)">0 total hits</span>
+    </div>
+    <div class="panel-body" style="padding:6px 8px;">
+      <table class="mini-table" id="egg-table">
+        <thead><tr><th>Egg</th><th>Hits</th><th>Unique IPs</th><th>Countries</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sophistication distribution + Return visitors -->
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <div class="panel">
+      <div class="panel-header">Attacker Sophistication Distribution (1–10)</div>
+      <div class="panel-body" style="padding:10px 14px;" id="soph-bars"></div>
+    </div>
+    <div class="panel" style="flex:1;">
+      <div class="panel-header">
+        <span>Return Visitors</span>
+        <span id="return-count" style="color:var(--purple)">0</span>
+      </div>
+      <div class="panel-body" style="padding:6px 8px;max-height:180px;overflow-y:auto;">
+        <table class="mini-table" id="return-table">
+          <thead><tr><th>IP</th><th>Visits</th><th>Country</th><th>Commands</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Live command feed -->
+<div class="cmd-feed-wrap">
+  <div class="panel">
+    <div class="panel-header">
+      <span>Live Command Feed</span>
+      <span id="feed-count" style="color:var(--green);font-size:11px">0 entries</span>
+    </div>
+    <div id="cmd-feed"></div>
+  </div>
+</div>
+
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ── Theme defaults ────────────────────────────────────────────────────────────
 Chart.defaults.color = '#8b949e';
@@ -244,9 +392,10 @@ const PALETTE = [ACCENT, GREEN, PURPLE, YELLOW, RED, '#ffa657', '#79c0ff',
 const map = L.map('map', { zoomControl: true, attributionControl: false })
   .setView([20, 0], 2);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
   maxZoom: 18, subdomains: 'abcd'
 }).addTo(map);
+setTimeout(() => map.invalidateSize(), 250);
 
 const markerLayer = L.layerGroup().addTo(map);
 const mapIPs = new Map();
@@ -330,10 +479,15 @@ function mkLine(id) {
 }
 
 // Instantiate charts
-const timelineChart = mkLine('timeline-chart');
-const cmdChart      = mkBar('cmd-chart',   { horizontal: true, color: GREEN,   maintainAR: false });
-const mitreChart    = mkBar('mitre-chart', { horizontal: true, color: PURPLE,  maintainAR: false });
-const countryChart  = mkDoughnut('country-chart');
+const timelineChart    = mkLine('timeline-chart');
+const cmdChart         = mkBar('cmd-chart',         { horizontal: true, color: GREEN,   maintainAR: false });
+const mitreChart       = mkBar('mitre-chart',       { horizontal: true, color: PURPLE,  maintainAR: false });
+const countryChart     = mkDoughnut('country-chart');
+const heatmapChart     = mkBar('heatmap-chart',     { horizontal: false, color: YELLOW, maintainAR: false,
+                           extra: { scales: { x: { grid: {color:'#30363d'}, ticks: { maxRotation: 0, font:{size:9} } },
+                                             y: { grid: {color:'#30363d'}, beginAtZero:true } } } });
+const credPatternChart = mkDoughnut('cred-pattern-chart');
+const firstCmdChart    = mkBar('first-cmd-chart',   { horizontal: true, color: ACCENT,  maintainAR: false });
 
 // ── Chart updaters ────────────────────────────────────────────────────────────
 function updateChart(chart, labels, data, colors) {
@@ -426,6 +580,12 @@ function updateHiSessions(data) {
           <div style="margin-bottom:6px;font-size:11px;color:var(--muted)">
             ${esc(s.username)}:${esc(s.password||'')} · ${esc(s.geo_asn||'')}
             ${s.is_cloud ? '· <span class="badge-cloud">cloud</span>' : ''}
+            ${s.is_return_visitor ? '· <span class="badge-return">return visitor #'+s.visit_number+'</span>' : ''}
+          </div>
+          <div style="margin-bottom:4px;font-size:10px;color:var(--muted)">
+            ${s.sophistication_score ? '⚡ Sophistication: <b style="color:var(--green)">' + s.sophistication_score + '/10</b> · ' : ''}
+            ${s.first_cmd_category ? 'First cmd: <b style="color:var(--accent)">' + esc(CMD_CAT_LABELS[s.first_cmd_category]||s.first_cmd_category) + '</b>' : ''}
+            ${(s.easter_eggs_triggered||[]).map(e=>`<span class="badge-egg">${esc(e)}</span>`).join('')}
           </div>
           <div style="margin-bottom:6px">${tags}</div>
           ${cmds || '<span style="color:var(--muted)">No commands recorded</span>'}
@@ -446,6 +606,125 @@ function updateStats(s) {
   document.getElementById('stat-commands').textContent = s.commands_today.toLocaleString();
   document.getElementById('stat-hi').textContent = s.high_interest_today.toLocaleString();
   document.getElementById('stat-active').textContent = 'Updated just now';
+  document.getElementById('stat-abandon').textContent = (s.abandonment_rate || 0) + '%';
+  document.getElementById('stat-return').textContent = (s.return_visitors_today || 0).toLocaleString();
+  document.getElementById('stat-soph').textContent = s.avg_sophistication ? s.avg_sophistication.toFixed(1) : '—';
+  document.getElementById('stat-eggs').textContent = (s.easter_egg_hits_today || 0).toLocaleString();
+}
+
+// ── Heatmap ───────────────────────────────────────────────────────────────────
+function updateHeatmap(data) {
+  const labels = data.map(d => d.hour.toString().padStart(2,'0') + 'h');
+  updateChart(heatmapChart, labels, data.map(d => d.count));
+}
+
+// ── Credential patterns ───────────────────────────────────────────────────────
+const PATTERN_LABELS = {
+  'service_default': 'Service Default',
+  'iot_default': 'IoT Default',
+  'crypto_related': 'Crypto-Related',
+  'keyboard_walk': 'Keyboard Walk',
+  'numeric_only': 'Numeric Only',
+  'dictionary_word': 'Dictionary Word',
+  'pubkey': 'Public Key',
+  'custom': 'Custom',
+};
+function updateCredPatterns(data) {
+  credPatternChart.data.labels = data.map(d => PATTERN_LABELS[d.password_pattern] || d.password_pattern);
+  credPatternChart.data.datasets[0].data = data.map(d => d.count);
+  credPatternChart.data.datasets[0].backgroundColor = PALETTE.slice(0, data.length);
+  credPatternChart.update('none');
+}
+
+// ── First command fingerprinting ──────────────────────────────────────────────
+const CMD_CAT_LABELS = {
+  'recon': 'Recon (uname/whoami)',
+  'crypto_hunting': 'Crypto Hunting (solana/wallet)',
+  'persistence': 'Persistence (ssh-keygen/crontab)',
+  'download': 'Download (wget/curl)',
+  'lateral_movement': 'Lateral Movement (nc/ssh)',
+  'anti_forensics': 'Anti-Forensics (HISTFILE)',
+  'escalation': 'Escalation (sudo/su)',
+  'enumeration': 'Enumeration (ls/find)',
+  'other': 'Other',
+};
+function updateFirstCmds(data) {
+  const colors = {
+    'recon': ACCENT, 'crypto_hunting': YELLOW, 'persistence': PURPLE,
+    'download': RED, 'lateral_movement': '#ffa657', 'anti_forensics': '#ff7b72',
+    'escalation': GREEN, 'enumeration': MUTED, 'other': '#79c0ff',
+  };
+  updateChart(firstCmdChart,
+    data.map(d => CMD_CAT_LABELS[d.first_cmd_category] || d.first_cmd_category),
+    data.map(d => d.count),
+    data.map(d => colors[d.first_cmd_category] || ACCENT)
+  );
+}
+
+// ── Sophistication distribution ───────────────────────────────────────────────
+function updateSophistication(data) {
+  const container = document.getElementById('soph-bars');
+  if (!data || !data.length) { container.innerHTML = '<span style="color:var(--muted);font-size:11px">No data yet</span>'; return; }
+  const maxCount = Math.max(...data.map(d => d.count), 1);
+  const scoreColors = ['#3fb950','#56d364','#7ee787','#d29922','#ffa657','#ffa657','#ff7b72','#f85149','#f85149','#f85149'];
+  container.innerHTML = data.map(d => {
+    const pct = Math.round(d.count / maxCount * 100);
+    const label = d.score <= 3 ? 'Script kiddie' : d.score <= 6 ? 'Moderately skilled' : 'Advanced';
+    return `<div class="soph-bar" title="Score ${d.score}: ${label} (${d.count} sessions)">
+      <span class="soph-label">${d.score}</span>
+      <div class="soph-track"><div class="soph-fill" style="width:${pct}%;background:${scoreColors[d.score-1]}"></div></div>
+      <span style="font-size:10px;color:var(--muted);min-width:28px;text-align:right">${d.count}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Easter egg leaderboard ────────────────────────────────────────────────────
+const EGG_NAMES = {
+  'crown_jewel': '👑 Crown Jewel (wallet.json)',
+  'snake_game': '🐍 Snake Game (top/htop)',
+  'secret_flag': '🏆 Secret Flag (whoami --verbose)',
+  'classic_rm': '💣 The Classic (rm -rf /)',
+  'dare_zip': '📦 The Dare (DO_NOT_OPEN.zip)',
+  'wget': '⬇️ Ingress Tool (wget)',
+  'curl': '⬇️ Same Energy (curl)',
+  'chmod_exe': '⚡ Chmod+x',
+  'bash_spawn': '🔄 Bash Spawn (-i)',
+  'run_payload': '🚀 Run Payload (./)',
+  'escalation': '🔓 Escalation (tripwire)',
+  'self_destruct': '💥 Self-Destruct (private_keys)',
+  'python_repl': '🐍 Python REPL',
+  'ssh_keygen': '🔑 Persistence (ssh-keygen)',
+  'passwd_harvest': '🔐 Credential Harvest (passwd)',
+  'nuclear_option': '☢️ Nuclear Option (mkfs)',
+  'hotel_california': '🏨 Hotel California (exit)',
+};
+function updateEasterEggs(data) {
+  const total = data.reduce((s, d) => s + d.hit_count, 0);
+  document.getElementById('egg-total').textContent = total + ' total hits';
+  const tbody = document.querySelector('#egg-table tbody');
+  tbody.innerHTML = data.map(r =>
+    `<tr>
+      <td style="color:var(--text)">${EGG_NAMES[r.egg_name] || esc(r.egg_name)}</td>
+      <td style="color:var(--green);text-align:right">${r.hit_count}</td>
+      <td style="color:var(--muted);text-align:right">${r.unique_ips}</td>
+      <td style="color:var(--muted);text-align:right">${r.country_count}</td>
+    </tr>`
+  ).join('');
+}
+
+// ── Return visitors ───────────────────────────────────────────────────────────
+function updateReturnVisitors(data) {
+  document.getElementById('return-count').textContent = data.length;
+  const tbody = document.querySelector('#return-table tbody');
+  tbody.innerHTML = data.map(r => {
+    const last = r.last_seen ? r.last_seen.substring(0,16).replace('T',' ') : '—';
+    return `<tr>
+      <td style="color:var(--accent);font-size:11px">${esc(r.source_ip)}</td>
+      <td style="color:var(--yellow);text-align:right"><span class="badge-return">${r.total_visits}x</span></td>
+      <td style="color:var(--muted)">${esc(r.geo_country || '—')}</td>
+      <td style="color:var(--muted);text-align:right">${r.total_commands}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -457,10 +736,59 @@ function fmtTime(iso) {
   return new Date(iso).toLocaleTimeString();
 }
 
+// ── Time-range toggle ─────────────────────────────────────────────────────────
+let currentRange = 'all';
+
+function setRange(r) {
+  currentRange = r;
+  document.getElementById('range-all').classList.toggle('active', r === 'all');
+  document.getElementById('range-24h').classList.toggle('active', r === '24h');
+  const is24 = r === '24h';
+  document.getElementById('lbl-connections').textContent = is24 ? 'Connections (24h)' : 'All Connections';
+  document.getElementById('lbl-unique').textContent      = is24 ? 'Unique IPs (24h)'  : 'All Unique IPs';
+  document.getElementById('lbl-commands').textContent    = is24 ? 'Commands (24h)'     : 'Total Commands';
+  document.getElementById('lbl-hi').textContent          = is24 ? 'High-Interest (24h)': 'High-Interest Sessions';
+  document.getElementById('lbl-abandon').textContent     = is24 ? 'Abandonment (24h)'  : 'Abandonment Rate';
+  document.getElementById('lbl-return').textContent      = is24 ? 'Return Visitors (24h)' : 'Return Visitors';
+  document.getElementById('lbl-soph').textContent        = is24 ? 'Avg Sophistication (24h)' : 'Avg Sophistication';
+  document.getElementById('lbl-eggs').textContent        = is24 ? 'Egg Hits (24h)'     : 'Easter Egg Hits';
+  // Clear the live feed — the new SSE connection will repopulate it
+  document.getElementById('cmd-feed').innerHTML = '';
+  document.getElementById('feed-count').textContent = '0 entries';
+  if (es) es.close();
+  connect();
+}
+
+// ── Live command feed ─────────────────────────────────────────────────────────
+const FEED_MAX = 100;
+
+function prependCommands(cmds) {
+  if (!cmds || !cmds.length) return;
+  const feed = document.getElementById('cmd-feed');
+  // Iterate oldest-first (ASC from server); insertBefore(firstChild) puts newest at top
+  cmds.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'feed-line';
+    const ts   = (c.timestamp || '').substring(11, 19) || '--:--:--';
+    const tags = (c.mitre_tags || []).map(t =>
+      `<span class="cmd-tag" title="${esc(t.name || '')}">${esc(t.id)}</span>`
+    ).join('');
+    div.innerHTML =
+      `<span class="feed-ts">${esc(ts)}</span>` +
+      `<span class="feed-ip">${esc(c.source_ip)}</span>` +
+      `<span class="feed-cmd">${esc(c.command)}</span>` +
+      `<span class="feed-tags">${tags}</span>`;
+    feed.insertBefore(div, feed.firstChild);
+  });
+  while (feed.children.length > FEED_MAX) feed.removeChild(feed.lastChild);
+  document.getElementById('feed-count').textContent = feed.children.length + ' entries';
+}
+
 // ── SSE connection ────────────────────────────────────────────────────────────
 let es;
 function connect() {
-  es = new EventSource('/api/events');
+  const qs = currentRange !== 'all' ? '?range=' + currentRange : '';
+  es = new EventSource('/api/events' + qs);
 
   es.addEventListener('connected', () => {
     document.getElementById('last-updated').textContent = 'Connected';
@@ -470,15 +798,22 @@ function connect() {
     const d = JSON.parse(e.data);
     document.getElementById('last-updated').textContent = 'Last update: ' + new Date().toLocaleTimeString();
 
-    if (d.stats)        updateStats(d.stats);
-    if (d.countries)    updateCountries(d.countries);
-    if (d.asns)         updateAsnTable(d.asns);
-    if (d.credentials)  updateCredTable(d.credentials);
-    if (d.commands)     updateCommands(d.commands);
-    if (d.mitre)        updateMitre(d.mitre);
-    if (d.hourly)       updateHourly(d.hourly);
-    if (d.map_points)   updateMap(d.map_points);
-    if (d.high_interest) updateHiSessions(d.high_interest);
+    if (d.stats)               updateStats(d.stats);
+    if (d.countries)           updateCountries(d.countries);
+    if (d.asns)                updateAsnTable(d.asns);
+    if (d.credentials)         updateCredTable(d.credentials);
+    if (d.commands)            updateCommands(d.commands);
+    if (d.mitre)               updateMitre(d.mitre);
+    if (d.hourly)              updateHourly(d.hourly);
+    if (d.map_points)          updateMap(d.map_points);
+    if (d.high_interest)       updateHiSessions(d.high_interest);
+    if (d.heatmap)             updateHeatmap(d.heatmap);
+    if (d.credential_patterns) updateCredPatterns(d.credential_patterns);
+    if (d.first_commands)      updateFirstCmds(d.first_commands);
+    if (d.easter_eggs)         updateEasterEggs(d.easter_eggs);
+    if (d.sophistication)      updateSophistication(d.sophistication);
+    if (d.return_visitors)     updateReturnVisitors(d.return_visitors);
+    if (d.new_commands)        prependCommands(d.new_commands);
   });
 
   es.onerror = () => {

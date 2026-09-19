@@ -9,9 +9,10 @@ from typing import Optional
 
 import asyncssh
 
+from .db import get_visit_number
 from .enrichment import enrich_ip
 from .logger import log_command, log_connect, log_disconnect, log_enrichment
-from .session import SessionRegistry, SessionState
+from .session import SessionRegistry, SessionState, classify_password
 from .shell import FakeShell
 
 logger = logging.getLogger(__name__)
@@ -121,11 +122,15 @@ class HoneypotServer(asyncssh.SSHServer):
             logger.info("Rejected banned IP %s", ip)
             return False
 
+        prior_visits = get_visit_number(ip)
         session = SessionState(
             source_ip=ip,
             source_port=port,
             username=username,
             password=credential,
+            password_pattern=classify_password(credential),
+            is_return_visitor=prior_visits > 0,
+            visit_number=prior_visits + 1,
         )
 
         if not await _registry.add(session):
