@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SSH Honeypot: The Snack Report — Hot Pink Huntress</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@700&display=swap');
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: #0a0a0f;
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 10pt;
+  line-height: 1.45;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ── Page shell ───────────────────────────────── */
+.page {
+  width: 210mm;
+  margin: 0 auto;
+  padding: 11mm 13mm 9mm;
+  background: #0a0a0f;
+  display: flex;
+  flex-direction: column;
+  gap: 7pt;
+}
+
+/* ── Header ──────────────────────────────────── */
+.header { border-bottom: 2.5px solid #ff2d78; padding-bottom: 6pt; }
+
+.brand-row { display: flex; align-items: baseline; gap: 10pt; }
+
+.brand-name {
+  font-size: 20pt;
+  font-weight: 900;
+  color: #ff2d78;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.brand-tag {
+  font-size: 7.5pt;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 5pt;
+  background: #ff2d78;
+  color: #000;
+  padding: 4pt 9pt;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.stats-bar .s { margin-right: 18pt; }
+.stats-bar .s::before { content: "→ "; }
+
+/* ── Hook ────────────────────────────────────── */
+.hook {
+  font-size: 9.5pt;
+  color: rgba(255,255,255,0.82);
+  border-left: 3px solid #ff2d78;
+  padding-left: 9pt;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ── Section label ───────────────────────────── */
+.section-label {
+  font-size: 7pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #ff2d78;
+  margin-bottom: 1pt;
+}
+
+/* ── Highlights grid ─────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5pt 11pt;
+}
+
+.card {
+  background: rgba(255,45,120,0.065);
+  border: 1px solid rgba(255,45,120,0.22);
+  border-radius: 3px;
+  padding: 5pt 7pt;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.card-lead {
+  font-size: 8.5pt;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.card-lead .emoji { margin-right: 2pt; }
+
+.card-body {
+  font-size: 8pt;
+  color: rgba(255,255,255,0.72);
+  margin-top: 2pt;
+  line-height: 1.42;
+}
+
+.card-body em {
+  color: #fff;
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* ── Playtester aside ────────────────────────── */
+.aside {
+  font-size: 7.5pt;
+  color: rgba(255,255,255,0.38);
+  font-style: italic;
+  border-top: 1px solid rgba(255,45,120,0.14);
+  padding-top: 5pt;
+}
+
+/* ── Takeaway ────────────────────────────────── */
+.takeaway {
+  background: #ff2d78;
+  color: #000;
+  padding: 7pt 11pt;
+  border-radius: 3px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.takeaway-label {
+  font-size: 6.5pt;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin-bottom: 3pt;
+}
+
+.takeaway-body {
+  font-size: 8.5pt;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.takeaway-body code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7.5pt;
+  background: rgba(0,0,0,0.18);
+  padding: 0 3pt;
+  border-radius: 2px;
+}
+
+/* ── Footer ──────────────────────────────────── */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-top: 1px solid rgba(255,45,120,0.22);
+  padding-top: 5pt;
+  margin-top: auto;
+}
+
+.footer-sig {
+  font-size: 9pt;
+  font-weight: 700;
+  color: #ff2d78;
+}
+
+.footer-note {
+  font-size: 7pt;
+  color: rgba(255,255,255,0.3);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+}
+
+/* ── Mobile override ─────────────────────────── */
+@media screen and (max-width: 600px) {
+  .page  { width: 100%; padding: 16px; }
+  .grid  { grid-template-columns: 1fr; }
+  .brand-name { font-size: 16pt; }
+  .stats-bar  { font-size: 7.5pt; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand-row">
+      <span class="brand-name">🩷 HOT PINK HUNTRESS</span>
+    </div>
+    <div class="brand-tag">SSH Honeypot · Snack Report · 2026</div>
+    <div class="stats-bar">
+      <span class="s">136,128 sessions</span>
+      <span class="s">147 days</span>
+      <span class="s">414,070 commands</span>
+      <span class="s">63,283 password combos tried</span>
+    </div>
+  </div>
+
+  <!-- Hook -->
+  <div class="hook">
+    I left a fake server on the internet for 147 days — dressed up as a Solana cryptocurrency node — and logged every break-in attempt. What followed was educational, chaotic, and deeply weird.
+  </div>
+
+  <!-- Highlights -->
+  <div class="section-label">// The good stuff</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-lead"><span class="emoji">⚡</span>Gone in 60 seconds.</div>
+      <div class="card-body">The server went live. Before the minute was up, the first automated scanner was inside running graphics-card checks. Port&nbsp;22 is watched around the clock. It doesn't take days to find a new server — it takes seconds.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-lead"><span class="emoji">🤖</span>8,949 logins to say "ok."</div>
+      <div class="card-body">One bot spent a whole night connecting, typing the word <em>ok</em>, and disconnecting. It was verifying its stolen password list still worked — like an automated receipt check — before doing anything with it.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-lead"><span class="emoji">⛏️</span>Bots evicting other bots.</div>
+      <div class="card-body">3,210 sessions broke in specifically to murder any crypto miners already running, then install their own. Cut-throat real estate for stolen server power. The internet is, at its core, a turf war.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-lead"><span class="emoji">🔑</span>Top password: admin123. Tried 15,938 times.</div>
+      <div class="card-body">Runner-up: <em>support</em>. Someone also tried a blank password 290 times. The #2 most-targeted username was <em>azureuser</em> — attackers' lists now include Azure's default account name. They know the defaults.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-lead"><span class="emoji">🔤</span>Typos in the crime.</div>
+      <div class="card-body">One visitor typed <em>solona</em> instead of <em>solana</em>, and <em>cx&nbsp;..</em> instead of <em>cd&nbsp;..</em> (the command to go up a folder). Still found the fake crypto wallet in four minutes. Determination beats spelling.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-lead"><span class="emoji">🪜</span>Shrinking passwords.</div>
+      <div class="card-body">One visitor came back 21 times in one day: <em>password123&nbsp;→&nbsp;wer&nbsp;→&nbsp;n&nbsp;→&nbsp;f&nbsp;→&nbsp;(empty)&nbsp;→&nbsp;a</em>. At some point they realized the door had no lock. They tried the empty string anyway. Respect the commitment.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-lead"><span class="emoji">🇫🇷</span>French backdoor. Password: Hackers666.</div>
+      <div class="card-body">A beautifully engineered, multi-platform attack script. Full French-language inline comments. Proper error handling. Meticulous OS detection. Chosen secret password: <em>Hackers666</em>. They can't all be winners.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-lead"><span class="emoji">🎣</span>The disguise fooled almost no one.</div>
+      <div class="card-body">147 days as a glittering crypto goldmine. 136,128 visitors. Five found the fake wallet. Everyone else ignored the story entirely and went straight for free server power.</div>
+    </div>
+
+  </div>
+
+  <!-- Playtester aside -->
+  <div class="aside">✨ P.S. A friend found the in-shell terminal game on day 2 and died six times in four minutes. Their visits aren't in the numbers above.</div>
+
+  <!-- Takeaway -->
+  <div class="takeaway">
+    <div class="takeaway-label">// The one thing you can do right now</div>
+    <div class="takeaway-body"><strong>Turn off SSH password authentication. Use a key instead.</strong> A key is a digital lock that no wordlist can guess. Run <code>ssh-keygen</code>, add the public key to your server, set <code>PasswordAuthentication no</code> in your SSH config. That's it. Every session in this 40-page report worked because the server accepted passwords. Remove that and 99% of this goes away.</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span class="footer-sig">— Jenna | Hot Pink Huntress</span>
+    <span class="footer-note">Full 40-page report · 136,128 sessions · 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
