@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SSH Honeypot Threat Intelligence Report — 147 Days — 2026</title>
+<style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+@page {
+    size: A4;
+    margin: 0;
+    background: #0a0a0f;
+}
+
+@page content {
+    size: A4;
+    margin: 22mm 20mm 22mm 20mm;
+    background: #0a0a0f;
+    @bottom-center {
+        content: counter(page);
+        color: #ff2d78;
+        font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+        font-size: 9pt;
+        letter-spacing: 0.1em;
+    }
+    @top-right {
+        content: "SSH HONEYPOT // THREAT INTELLIGENCE // 147 DAYS";
+        color: #00e5ff;
+        font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+        font-size: 6.5pt;
+        letter-spacing: 0.15em;
+        opacity: 0.5;
+    }
+}
+
+@page cover {
+    size: A4;
+    margin: 0;
+    background: #0a0a0f;
+}
+
+@page toc {
+    size: A4;
+    margin: 22mm 20mm 22mm 20mm;
+    background: #0a0a0f;
+    @bottom-center {
+        content: counter(page, lower-roman);
+        color: #00e5ff;
+        font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+        font-size: 9pt;
+    }
+}
+
+body {
+    background: #0a0a0f;
+    color: #e8e8e8;
+    font-family: 'Inter', 'Open Sans', 'DejaVu Sans', sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.75;
+}
+
+/* ── Cover ── */
+.cover {
+    page: cover;
+    page-break-after: always;
+    width: 210mm;
+    height: 297mm;
+    background: #0a0a0f;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.cover-grid {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 20mm 20mm;
+}
+
+.cover-glow-pink {
+    position: absolute;
+    top: -80mm; right: -60mm;
+    width: 200mm; height: 200mm;
+    background: radial-gradient(circle, rgba(255,45,120,0.18) 0%, transparent 70%);
+}
+
+.cover-glow-cyan {
+    position: absolute;
+    bottom: -60mm; left: -40mm;
+    width: 180mm; height: 180mm;
+    background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%);
+}
+
+.cover-accent-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3mm;
+    background: linear-gradient(90deg, #ff2d78 0%, #00e5ff 100%);
+}
+
+.cover-bottom-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1.5mm;
+    background: linear-gradient(90deg, #00e5ff 0%, #ff2d78 100%);
+}
+
+.cover-content {
+    position: relative;
+    z-index: 10;
+    padding: 35mm 20mm 20mm 20mm;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.cover-label {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 8pt;
+    letter-spacing: 0.35em;
+    color: #00e5ff;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 8mm;
+}
+
+.cover-title {
+    font-family: 'Inter', 'Open Sans', 'DejaVu Sans', sans-serif;
+    font-weight: 900;
+    font-size: 26pt;
+    line-height: 1.2;
+    color: #ffffff;
+    margin-bottom: 5mm;
+}
+
+.cover-title .hp { color: #ff2d78; }
+.cover-title .hc { color: #00e5ff; }
+
+.cover-subtitle {
+    font-family: 'Inter', 'Open Sans', 'DejaVu Sans', sans-serif;
+    font-weight: 300;
+    font-size: 12pt;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.6;
+    margin-bottom: 12mm;
+    max-width: 140mm;
+}
+
+.cover-divider {
+    width: 50mm; height: 0.5mm;
+    background: linear-gradient(90deg, #ff2d78, transparent);
+    margin-bottom: 10mm;
+}
+
+.cover-stats {
+    display: flex;
+    gap: 8mm;
+    margin-bottom: 14mm;
+    flex-wrap: wrap;
+}
+
+.cover-stat { display: flex; flex-direction: column; }
+
+.cover-stat-number {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 20pt;
+    font-weight: 700;
+    color: #ff2d78;
+    line-height: 1;
+}
+
+.cover-stat-label {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 6.5pt;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    margin-top: 1mm;
+}
+
+.cover-meta { display: flex; flex-direction: column; gap: 1.5mm; }
+
+.cover-meta-item {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 8pt;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+}
+
+.cover-meta-item span { color: #00e5ff; }
+
+/* ── TOC ── */
+.toc-page {
+    page: toc;
+    page-break-after: always;
+}
+
+.toc-heading {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 8pt;
+    letter-spacing: 0.4em;
+    color: #ff2d78;
+    text-transform: uppercase;
+    margin-bottom: 6mm;
+    padding-bottom: 3mm;
+    border-bottom: 0.3mm solid rgba(255,45,120,0.3);
+}
+
+.toc-entry {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 3mm;
+    font-family: 'Inter', 'Open Sans', 'DejaVu Sans', sans-serif;
+}
+
+.toc-num {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 9pt;
+    color: #ff2d78;
+    min-width: 14mm;
+    flex-shrink: 0;
+}
+
+.toc-title {
+    font-size: 10.5pt;
+    color: #e8e8e8;
+    flex: 1;
+    font-weight: 400;
+}
+
+.toc-sub {
+    font-size: 8.5pt;
+    color: #a0a0b0;
+    padding-left: 14mm;
+    margin-bottom: 3mm;
+    font-family: 'Inter', 'Open Sans', 'DejaVu Sans', sans-serif;
+}
+
+.toc-dots {
+    flex: 1;
+    border-bottom: 0.3mm dotted rgba(255,255,255,0.12);
+    margin: 0 3mm 1.5mm;
+}
+
+/* ── Content ── */
+.content { page: content; }
+
+/* ── Headings ── */
+h1 {
+    font-family: 'Inter', 'Open Sans', 'DejaVu Sans', sans-serif;
+    font-weight: 900;
+    font-size: 20pt;
+    color: #ffffff;
+    line-height: 1.2;
+    margin: 0 0 6mm 0;
+    padding-bottom: 4mm;
+    border-bottom: 0.5mm solid #ff2d78;
+    page-break-after: avoid;
+}
+
+h2 {
+    font-family: 'Inter', 'Open Sans', 'DejaVu Sans', sans-serif;
+    font-weight: 700;
+    font-size: 15pt;
+    color: #ff2d78;
+    margin: 10mm 0 4mm 0;
+    page-break-after: avoid;
+}
+
+h2::before {
+    content: "// ";
+    color: rgba(255,45,120,0.4);
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 11pt;
+}
+
+h3 {
+    font-family: 'Inter', 'Open Sans', 'DejaVu Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12pt;
+    color: #00e5ff;
+    margin: 7mm 0 3mm 0;
+    page-break-after: avoid;
+}
+
+h4 {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 10pt;
+    color: rgba(0,229,255,0.7);
+    font-weight: 700;
+    margin: 5mm 0 2mm 0;
+    letter-spacing: 0.05em;
+    page-break-after: avoid;
+}
+
+/* ── Body text ── */
+p {
+    margin-bottom: 4mm;
+    color: #d0d0d0;
+    orphans: 3;
+    widows: 3;
+}
+
+p strong { color: #ffffff; font-weight: 600; }
+em { color: rgba(255,255,255,0.65); font-style: italic; }
+
+hr {
+    border: none;
+    height: 0.3mm;
+    background: linear-gradient(90deg, transparent, rgba(255,45,120,0.4), rgba(0,229,255,0.4), transparent);
+    margin: 8mm 0;
+}
+
+/* ── Code ── */
+pre {
+    background: #0f0f1a;
+    border: 0.3mm solid rgba(0,229,255,0.2);
+    border-left: 1mm solid #00e5ff;
+    border-radius: 2mm;
+    padding: 4mm 5mm;
+    margin: 4mm 0;
+    overflow: hidden;
+    page-break-inside: avoid;
+}
+
+pre code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 8.5pt;
+    line-height: 1.6;
+    color: #a0ffa0;
+    background: none;
+    border: none;
+    padding: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 8.5pt;
+    background: rgba(0,229,255,0.08);
+    border: 0.2mm solid rgba(0,229,255,0.2);
+    border-radius: 1mm;
+    padding: 0.3mm 1.5mm;
+    color: #00e5ff;
+}
+
+/* ── Tables ── */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 5mm 0;
+    page-break-inside: avoid;
+    font-size: 9pt;
+}
+
+thead tr {
+    background: rgba(255,45,120,0.12);
+    border-bottom: 0.5mm solid #ff2d78;
+}
+
+thead th {
+    padding: 3mm 4mm;
+    text-align: left;
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 8pt;
+    font-weight: 700;
+    color: #ff2d78;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+tbody tr { border-bottom: 0.2mm solid rgba(255,255,255,0.06); }
+tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+tbody td {
+    padding: 2.5mm 4mm;
+    color: #c8c8c8;
+    font-size: 9pt;
+    vertical-align: top;
+}
+
+tbody td:first-child {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 8.5pt;
+}
+
+tbody td strong { color: #ffffff; }
+
+/* ── Lists ── */
+ul, ol { margin: 3mm 0 4mm 6mm; color: #c8c8c8; }
+li { margin-bottom: 1.5mm; line-height: 1.6; }
+ul li::marker { color: #ff2d78; }
+ol li::marker {
+    color: #00e5ff;
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 9pt;
+}
+
+/* ── Section number badge ── */
+.section-num {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 8pt;
+    color: #ff2d78;
+    letter-spacing: 0.12em;
+    display: block;
+    margin-bottom: 1mm;
+    opacity: 0.7;
+    text-transform: uppercase;
+}
+
+/* ── Stat callout box ── */
+.stat-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4mm;
+    margin: 6mm 0;
+    page-break-inside: avoid;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 36mm;
+    background: #0f0f1a;
+    border: 0.3mm solid rgba(255,45,120,0.25);
+    border-top: 1mm solid #ff2d78;
+    padding: 4mm 5mm;
+    text-align: center;
+}
+
+.stat-num {
+    font-family: 'JetBrains Mono', 'Fira Code', 'DejaVu Sans Mono', monospace;
+    font-size: 18pt;
+    font-weight: 700;
+    color: #00e5ff;
+    line-height: 1.1;
+    display: block;
+}
+
+.stat-lbl {
+    font-size: 6.5pt;
+    color: #a0a0b0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 1.5mm;
+    display: block;
+}
+
+/* ── Page breaks ── */
+.page-break { page-break-before: always; }
+.no-break   { page-break-inside: avoid; }
+
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-grid"></div>
+  <div class="cover-glow-pink"></div>
+  <div class="cover-glow-cyan"></div>
+  <div class="cover-accent-bar"></div>
+  <div class="cover-bottom-bar"></div>
+  <div class="cover-content">
+    <div>
+      <div class="cover-label">Threat Intelligence Report &nbsp;·&nbsp; SSH Honeypot Study &nbsp;·&nbsp; 2026</div>
+      <div class="cover-title">
+        I Left <span class="hp">Port 22</span> Open<br>
+        for <span class="hc">147 Days</span><br>
+        Disguised as a<br>
+        Solana Validator.
+      </div>
+      <div style="margin-top:6mm;margin-bottom:4mm;">
+        <div class="cover-subtitle">Here's What Crawled In.</div>
+      </div>
+      <div class="cover-divider"></div>
+      <div class="cover-stats">
+        <div class="cover-stat">
+          <div class="cover-stat-number">136,128</div>
+          <div class="cover-stat-label">Sessions</div>
+        </div>
+        <div class="cover-stat">
+          <div class="cover-stat-number">6,145</div>
+          <div class="cover-stat-label">Unique IPs</div>
+        </div>
+        <div class="cover-stat">
+          <div class="cover-stat-number">414K</div>
+          <div class="cover-stat-label">Commands</div>
+        </div>
+        <div class="cover-stat">
+          <div class="cover-stat-number">147</div>
+          <div class="cover-stat-label">Days</div>
+        </div>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <div class="cover-meta-item"><span>PLATFORM</span> &nbsp; Microsoft Azure VM · Ubuntu 22.04 LTS</div>
+      <div class="cover-meta-item"><span>PERIOD &nbsp;&nbsp;</span> &nbsp; April 27 – September 21, 2026</div>
+      <div class="cover-meta-item"><span>ENGINE &nbsp;&nbsp;</span> &nbsp; Custom Python SSH Honeypot · asyncssh</div>
+      <div class="cover-meta-item"><span>PERSONA &nbsp;</span> &nbsp; Solana Validator Node v2.1.16</div>
+      <div class="cover-meta-item"><span>AUTHOR &nbsp;&nbsp;</span> &nbsp; Jenna · Hot Pink Huntress</div>
+    </div>
+  </div>
+</div>
+
+<div class="toc-page">
+  <div class="toc-heading">Table of Contents</div>
+  
+  <div class="toc-entry">
+    <span class="toc-num">PRE</span>
+    <span class="toc-title">Pre-Investigation Notes</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">Operator sessions excluded. Term definitions.</div>
+  <div class="toc-entry">
+    <span class="toc-num">01</span>
+    <span class="toc-title">Executive Summary</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">The experiment, the scale, the takeaway.</div>
+  <div class="toc-entry">
+    <span class="toc-num">02</span>
+    <span class="toc-title">Methodology</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">What the decoy was. How it was built.</div>
+  <div class="toc-entry">
+    <span class="toc-num">03</span>
+    <span class="toc-title">Key Findings at a Glance</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">136,128 sessions. 414,070 commands. 147 days.</div>
+  <div class="toc-entry">
+    <span class="toc-num">04</span>
+    <span class="toc-title">Attacker Infrastructure</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">Countries, ASNs, cloud vs residential, the outlier.</div>
+  <div class="toc-entry">
+    <span class="toc-num">05</span>
+    <span class="toc-title">What They Did When They Got In</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">Commands, behavior tiers, credentials, return visitors.</div>
+  <div class="toc-entry">
+    <span class="toc-num">06</span>
+    <span class="toc-title">When They Were Active</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">Hourly distribution. The corrected peak times.</div>
+  <div class="toc-entry">
+    <span class="toc-num">07</span>
+    <span class="toc-title">MITRE ATT&amp;CK Mapping</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">17 techniques. Discovery dominates.</div>
+  <div class="toc-entry">
+    <span class="toc-num">08</span>
+    <span class="toc-title">Notable Sessions</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">French backdoor. Miner squad. First knock. Five wallet hunters.</div>
+  <div class="toc-entry">
+    <span class="toc-num">09</span>
+    <span class="toc-title">Hands on the Keyboard</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">Two sessions that show someone was actually there.</div>
+  <div class="toc-entry">
+    <span class="toc-num">10</span>
+    <span class="toc-title">Indicators of Compromise</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">11 defanged IPs. Verify before blocking.</div>
+  <div class="toc-entry">
+    <span class="toc-num">11</span>
+    <span class="toc-title">What You Should Do About It</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">7 actionable takeaways.</div>
+  <div class="toc-entry">
+    <span class="toc-num">12</span>
+    <span class="toc-title">Limitations</span>
+    <span class="toc-dots"></span>
+  </div>
+  <div class="toc-sub">Honeypot caveats. Data gaps. Honest accounting.</div>
+</div>
+<div class="content">
+<p><em>Jenna | Hot Pink Huntress</em></p>
+<hr />
+
+<div class="tldr-box" style="background:#0f0f1a;border:1px solid #ff2d78;border-radius:6px;padding:1.5em 2em;margin:2em 0;">
+<p style="color:#ff2d78;font-family:monospace;font-size:0.85em;letter-spacing:0.15em;margin-bottom:0.75em;">// TL;DR — FIVE THINGS TO KNOW</p>
+<ul style="margin-left:1.2em;">
+<li><strong>The lure didn't matter.</strong> 147 days as a "Solana validator" and 136,128 sessions later — only 5 found the fake wallet. Attackers treated this box as generic Linux compute.</li>
+<li><strong>Automation dominates.</strong> 96.6% of sessions ran zero or one command. The internet runs on scripts, not humans.</li>
+<li><strong>The main goal was crypto mining, not Solana keys.</strong> 3,692 sessions deployed a miner. 5 looked for wallet files.</li>
+<li><strong>They came back.</strong> 95.5% of sessions came from IPs that had connected before. One successful brute-force doesn't generate one intrusion — it generates a subscription.</li>
+<li><strong>Turn off SSH password auth.</strong> Every session in this dataset succeeded because the honeypot accepted every credential. Public-key-only authentication would have stopped all of it.</li>
+</ul>
+</div>
+
+<div class="page-break"></div><h2>Pre-Investigation Notes</h2>
+<p>Five addresses were excluded from all metrics in this report: four operator-controlled addresses (including loopback) and one friend who knew about the project and tested it.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 1</span>Executive Summary</h2>
+<p>For 147 calendar days, a server sat on the open internet with SSH port 22 exposed, pretending to be a Solana cryptocurrency validator node. It accepted every login attempt automatically, logged every command, and said nothing. No real data was at risk. The point was to watch: who shows up, what do they want, and how do they behave once they think they're in?</p>
+<p>Over that period, 6,145 unique IP addresses knocked on the door. They generated 136,128 sessions, tried 63,283 distinct username-and-password combinations, and issued 414,070 commands after gaining access. The server was hit with an average of 926 sessions every single day. The moment the honeypot went live, the first attacker arrived. Not hours later. The moment it went live.</p>
+<p>The attackers were not, for the most part, sophisticated human hackers typing commands one by one. The vast majority of activity came from automated tools running credential wordlists and deployment scripts. The goal in most cases was cryptocurrency mining: get in, kill any competing miner already running, drop a new miner binary, set up persistence via cron and systemd, and leave. A smaller subset of sessions existed to validate whether a credential worked, with no exploitation attempted at all. At the far end of the spectrum, a handful of sessions showed genuine human operators conducting methodical reconnaissance and attempting to plant persistent backdoors.</p>
+<p>The single most actionable takeaway from this dataset: <strong>disable password-based SSH authentication.</strong> Nearly every session in this report was possible because the server accepted a password login (560 attempted public-key auth). Switch to SSH key authentication, and the attack surface for all of this activity drops to near zero.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 2</span>Methodology</h2>
+<p><strong>The decoy.</strong> The server presented itself as a Solana blockchain validator node. The SSH banner, fake filesystem layout, and simulated process list all reinforced this fiction. User accounts named <code>sol</code> and <code>solana</code> appeared in the environment. The goal was to make the server look like it was running real Solana validator software, to see whether attackers would behave differently toward a known crypto-infrastructure target.</p>
+<p><strong>Tech stack.</strong> The honeypot ran on an Azure virtual machine. A custom Python SSH server (built on the asyncssh library) accepted all incoming connections, simulated a Linux shell, and logged every credential attempt and every command to a SQLite database. The shell responses were scripted to look plausible without executing anything real.</p>
+<p><strong>Run period.</strong> April 27, 2026 through September 21, 2026. 147 calendar days.</p>
+<p><strong>Credential acceptance.</strong> Every username and password combination was accepted. Attackers were never told their credentials were wrong. This is standard honeypot practice: rejection teaches the attacker nothing useful happened, while acceptance draws them deeper and reveals behavior.</p>
+<p><strong>Term definitions.</strong><br />
+- <em>Session:</em> A single SSH connection from authentication through disconnect.<br />
+- <em>Connection:</em> Used interchangeably with session throughout this report.<br />
+- <em>Return visitor:</em> An IP address that created more than one session over the run period.<br />
+- <em>High-interest session:</em> A session that triggered one or more behavioral flags indicating substantive attacker activity beyond a simple credential probe.<br />
+- <em>Easter egg:</em> A named behavioral trap embedded in the simulated environment. Specific commands or actions trigger these flags, which are used to classify attacker intent and depth.</p>
+<p><strong>Operator exclusions.</strong> As noted above, five addresses are excluded from all metrics.</p>
+<p><strong>Playtester.</strong> One visitor on day 2 found the easter egg — a playable terminal game launched by typing <code>top</code> — and died six times in four minutes. Their sessions have been excluded from all metrics in this report. They knew about the project.</p>
+<p><strong>AbuseIPDB limitation.</strong> This report does not include AbuseIPDB reputation data. The honeypot database was not populated with AbuseIPDB lookups during the run period, so abuse scores are unavailable for cross-referencing.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 3</span>Key Findings at a Glance</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Run period</td>
+<td>April 27 to September 21, 2026 (147 calendar days)</td>
+</tr>
+<tr>
+<td>Total sessions</td>
+<td>136,128</td>
+</tr>
+<tr>
+<td>Unique attacker IPs</td>
+<td>6,145</td>
+</tr>
+<tr>
+<td>Unique credential combos tried</td>
+<td>63,283</td>
+</tr>
+<tr>
+<td>Sessions with commands</td>
+<td>69,436 (51.0%)</td>
+</tr>
+<tr>
+<td>Total commands logged</td>
+<td>414,070</td>
+</tr>
+<tr>
+<td>Return-visitor sessions</td>
+<td>129,956 (95.5% of total)</td>
+</tr>
+<tr>
+<td>Unique IPs that returned</td>
+<td>3,830 of 6,145</td>
+</tr>
+<tr>
+<td>High-interest sessions</td>
+<td>4,994</td>
+</tr>
+<tr>
+<td>Daily average</td>
+<td>926 sessions/day</td>
+</tr>
+</tbody>
+</table></div>
+<div class="stat-box">
+  <div class="stat-card">
+    <span class="stat-num">136,128</span>
+    <span class="stat-lbl">Total Sessions</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">6,145</span>
+    <span class="stat-lbl">Unique IPs</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">414,070</span>
+    <span class="stat-lbl">Commands Logged</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">63,283</span>
+    <span class="stat-lbl">Credential Combos</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">95.5%</span>
+    <span class="stat-lbl">Return-Visitor Rate</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">147</span>
+    <span class="stat-lbl">Days Active</span>
+  </div>
+</div>
+
+<p>The honeypot recorded its first session at 23:09:48 UTC on April 27, 2026. The IP was <code>2[.]57[.]122[.]238</code>, geolocated to Amsterdam, Netherlands, operating on AS47890 (Unmanaged LTD). The attacker used username <code>sol</code> and password <code>12345678</code>. Within seconds of gaining access, the session issued four commands:</p>
+<pre><code>/bin/./uname -s -v -n -r -m
+uptime -p
+lspci | grep VGA
+nvidia-smi -q
+</code></pre>
+<p>The first two are standard reconnaissance. The last two are GPU enumeration. <code>lspci | grep VGA</code> lists graphics cards. <code>nvidia-smi -q</code> queries NVIDIA GPU status and driver information. This attacker was not looking for Solana tooling. The attacker was hunting for GPU compute capacity to mine cryptocurrency. The server had been live for less than a minute.</p>
+<p>The 95.5% return-visitor rate deserves special note. Only 4.5% of sessions in this dataset came from an IP that had never connected before. The other 95.5% came from IPs that had connected at least once previously — 129,956 sessions (95.5%). This is not loyalty. It is scripted re-scanning. Automated tools log working credentials and return to them. 3,830 of the 6,145 unique attacker IPs returned at least once. The implication for defenders is that a successful brute-force attempt does not generate one intrusion event. It generates dozens or hundreds.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 4</span>Attacker Infrastructure</h2>
+<h3>4a. Where They Came From</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Country</th>
+<th>Sessions</th>
+<th>Unique IPs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Germany</td>
+<td>32,535</td>
+<td>166</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Pakistan</td>
+<td>22,289</td>
+<td>217</td>
+</tr>
+<tr>
+<td>3</td>
+<td>United Kingdom</td>
+<td>22,223</td>
+<td>63</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Mexico</td>
+<td>9,327</td>
+<td>31</td>
+</tr>
+<tr>
+<td>5</td>
+<td>China</td>
+<td>6,617</td>
+<td>1,086</td>
+</tr>
+<tr>
+<td>6</td>
+<td>India</td>
+<td>6,148</td>
+<td>574</td>
+</tr>
+<tr>
+<td>7</td>
+<td>United States</td>
+<td>5,338</td>
+<td>596</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Estonia</td>
+<td>4,122</td>
+<td>7</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Hong Kong</td>
+<td>2,730</td>
+<td>321</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Turkey</td>
+<td>2,040</td>
+<td>18</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two patterns stand out. Germany's 32,535 sessions came from 166 IP addresses. That is a session-to-IP ratio of 196:1. The United Kingdom's 22,223 sessions came from 63 IPs, a ratio of 353:1. Both of these reflect concentrated scanning infrastructure: a small number of machines generating enormous traffic volumes. China, by contrast, produced 6,617 sessions from 1,086 unique IPs, a ratio of 6:1. The Chinese traffic is more distributed, consistent with a larger pool of compromised or rented devices rather than a handful of dedicated scanners.</p>
+<p>One important note on geography: country attribution reflects where an IP address is registered or geolocated, not the nationality of the person operating the tool. Attackers route traffic through VPNs, rented servers, and compromised machines in other countries. Germany being number one in session volume does not mean German attackers. It means German-hosted infrastructure.</p>
+<h3>4b. Cloud vs. Residential</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Sessions</th>
+<th>Unique IPs</th>
+<th>Share of IPs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cloud (VPS/datacenter)</td>
+<td>80,340</td>
+<td>1,473</td>
+<td>59.0%</td>
+</tr>
+<tr>
+<td>Residential/commercial</td>
+<td>55,803</td>
+<td>4,672</td>
+<td>41.0%</td>
+</tr>
+</tbody>
+</table></div>
+<p>A corrected classification using ASN-based rules shows 80,340 sessions (59.0%) originating from hosting providers, VPS platforms, and CDN/transit networks, with 55,803 sessions (41.0%) from ISP and residential blocks. The original <code>is_cloud</code> field in the database undercounts hosting by a factor of three — it missed large providers like Play2go International (29,314 sessions) and Cogent Communications (8,951 sessions) which were labeled residential. The takeaway from the earlier report that attacks came predominantly from "compromised residential devices" does not hold; the majority of traffic originated from rented cloud and VPS infrastructure.</p>
+<h3>4c. Top ASNs</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>ASN</th>
+<th>Name</th>
+<th>Sessions</th>
+<th>IPs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>AS215439</td>
+<td>Play2go International Limited</td>
+<td>29,314</td>
+<td>13</td>
+</tr>
+<tr>
+<td>2</td>
+<td>AS23966</td>
+<td>LINKdotNET Telecom Limited</td>
+<td>21,087</td>
+<td>2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>AS16276</td>
+<td>OVH SAS</td>
+<td>14,075</td>
+<td>57</td>
+</tr>
+<tr>
+<td>4</td>
+<td>AS174</td>
+<td>Cogent Communications</td>
+<td>8,951</td>
+<td>3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>AS47890</td>
+<td>Unmanaged LTD</td>
+<td>7,218</td>
+<td>4</td>
+</tr>
+<tr>
+<td>6</td>
+<td>AS8075</td>
+<td>Microsoft Corporation</td>
+<td>6,398</td>
+<td>553</td>
+</tr>
+<tr>
+<td>7</td>
+<td>AS41745</td>
+<td>Baykov Ilya Sergeevich</td>
+<td>4,085</td>
+<td>4</td>
+</tr>
+<tr>
+<td>8</td>
+<td>AS4837</td>
+<td>China Unicom</td>
+<td>1,255</td>
+<td>122</td>
+</tr>
+<tr>
+<td>9</td>
+<td>AS4766</td>
+<td>Korea Telecom</td>
+<td>1,208</td>
+<td>401</td>
+</tr>
+<tr>
+<td>10</td>
+<td>AS24961</td>
+<td>WIIT AG</td>
+<td>1,166</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<p>AS215439 (Play2go International Limited) delivered 29,314 sessions from 13 IP addresses. That is 2,255 sessions per IP. AS23966 (LINKdotNET Telecom Limited, Pakistan) produced 21,087 sessions from 2 IPs, averaging 10,544 sessions per IP. These are not distributed botnets. These are purpose-built scanning nodes running at high velocity from static addresses.</p>
+<p>AS8075 is Microsoft Corporation, the backbone of Azure. 6,398 sessions from 553 IPs means Azure-hosted machines were scanning this honeypot. Cloud platforms prohibit outbound port scanning in their terms of service. The presence of 553 distinct Microsoft-hosted IPs in this dataset suggests a meaningful number of compromised or policy-violating Azure instances are participating in SSH brute-force campaigns.</p>
+<p>AS41745 (Baykov Ilya Sergeevich) registered under an individual's name produced 4,085 sessions from 4 IPs. Individual-registration ASNs operating at this volume are a consistent pattern in threat infrastructure.</p>
+<h3>4d. The Credential-Validation Wave</h3>
+<p>On May 22, 2026, between 02:46 and 10:56 UTC, IP address <code>38[.]58[.]169[.]236</code> (AS174 Cogent Communications, geolocated to Mexico) created 8,949 sessions over 8 hours and 10 minutes. Every single session followed an identical pattern: one command, the credential-validation ping:</p>
+<pre><code>echo -e &quot;\x6F\x6B&quot;
+</code></pre>
+<p>This outputs the string <code>ok</code>. Nothing else. No reconnaissance. No payload. No persistence.</p>
+<p>This is not an attack. It is a quality-assurance sweep. The operator had a list of credentials and wanted to confirm which ones still worked. Each session connected, sent the ping, confirmed the shell responded, and disconnected. The result is a verified list of live credentials — which can feed exploitation tooling, or be sold on underground markets where buyers pay for confirmed working logins rather than raw wordlists.</p>
+<p>This wave accounts for 8,949 of the 63,364 total <code>echo -e "\x6F\x6B"</code> commands in the dataset. It is also why the previous report's analysis showed an artifact peak in the 02:00 to 10:00 UTC window. Once this single IP is excluded, the hourly distribution shifts (detailed in Section 6).</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 5</span>What They Did When They Got In</h2>
+<h3>5a. Top Commands</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Command</th>
+<th>Count</th>
+<th>What It Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>echo -e "\x6F\x6B"</code></td>
+<td>63,364</td>
+<td>Credential-validation ping. Confirms the shell is live and responding. Outputs "ok."</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>kill -9 $(lsof +D ...)</code></td>
+<td>62,453</td>
+<td>Competitor-process killer. Finds processes with open file handles in a target directory and kills them. Used to evict other miners.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>readlink -f /proc/root/exe</code></td>
+<td>45,475</td>
+<td>Honeypot artifact: the miner script reads "root" from the fake <code>ps aux</code> output and passes it to <code>readlink -f /proc/root/exe</code>. On real Linux, <code>/proc/</code> directories are numbered by PID, not username — this path does not exist on real systems. The fake shell responded as if it were valid.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>kill -9 root</code></td>
+<td>45,191</td>
+<td>Honeypot artifact: the script passes the username "root" (read from fake <code>ps aux</code>) where a numeric PID is required. On a real Linux system, <code>kill -9 root</code> would fail. On actual compromised servers, this script correctly resolves numeric PIDs from <code>ps</code> output. Part of the miner competitor-eviction loop.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>readlink -f /proc/solana/exe</code></td>
+<td>17,171</td>
+<td>Honeypot artifact: same as the /proc/root/exe case, but for the "solana" username from fake <code>ps aux</code>. Path does not exist on real Linux; the fake shell responded as valid. Part of the eviction loop.</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>kill -9 solana</code></td>
+<td>17,068</td>
+<td>Honeypot artifact: passes the username "solana" where a PID is expected. On real Linux this would fail. This is NOT targeted Solana blockchain tooling — the script kills by the process owner's username, and "solana" happened to be a user account on this server.</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>cd /dev/shm \|\| ... &amp;&amp; cat &gt; astats</code></td>
+<td>10,218</td>
+<td>Navigates to an in-memory filesystem (invisible to disk-based monitoring) and writes a binary named <code>astats</code>. This is the miner payload drop. The <code>cat &gt; astats</code> write operation appears in the same command chain; both forms represent the same campaign action.</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>uname -a</code></td>
+<td>4,778</td>
+<td>Standard system fingerprinting. Returns kernel version, architecture, and hostname.</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>pwd</code></td>
+<td>4,106</td>
+<td>Confirms current working directory. Orientation check after login.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Additional commands of note: <code>chmod +x w.sh</code> appeared 3,637 times (making a deployed shell script executable), crontab manipulation appeared 3,605 times (establishing scheduled persistence), and systemd unit writes appeared 3,590 times (creating a service that restarts the miner if it gets killed).</p>
+<p>The GPU-hunting commands from the first session (<code>lspci | grep VGA</code> and <code>nvidia-smi -q</code>) appear in a smaller subset of sessions. They signal attacker awareness that cryptocurrency mining benefits from GPU compute. The GPU-hunting commands are not specific to Solana — validators on the Solana network do not require GPU hardware. The attacker that connected first was not confused about what they were looking for.</p>
+<h3>5b. Three Tiers of Attacker Behavior</h3>
+<p>The 136,128 sessions split into four clean, non-overlapping tiers by command count. All four sum to the total.</p>
+<p><strong>Tier 1: Silent authenticators — 66,692 sessions (49.0%).</strong> These sessions connect, authenticate, run zero commands, and disconnect. The shell never received a single keystroke. These are pure credential probers: the tool confirms the password works and logs the result for later. Nothing was deployed; nothing was enumerated. Nearly half the dataset is this.</p>
+<p><strong>Tier 2: Single-command validators — 64,339 sessions (47.3%).</strong> One command, then gone. The canonical example is the 38[.]58[.]169[.]236 wave (8,949 sessions of <code>echo -e "\x6F\x6B"</code>) — a liveness check that confirms the shell is interactive. Other single-command sessions run <code>uname -a</code> or <code>id</code>. The goal is credential validation, not exploitation. Tiers 1 and 2 together account for 131,031 sessions — 96.3% of all activity.</p>
+<p><strong>Tier 3: Active recon and escalation — 1,073 sessions (0.8%).</strong> Two to twenty commands: directory exploration, process enumeration, network configuration review, credential harvesting from <code>/etc/passwd</code> and <code>/etc/shadow</code>. Some sessions attempt to establish persistent access through SSH key injection or account creation. Small in count, high in intent. A subset of these sessions show timing and behavioral signals consistent with human operators — see the Hands on the Keyboard section.</p>
+<p><strong>Tier 4: Deployment campaigns — 4,024 sessions (3.0%).</strong> More than 20 commands. This tier is dominated by the 93-command miner script (3,210 sessions): it deploys a cryptocurrency miner binary, sets cron and systemd persistence, and runs a kill-competitor loop. Within Tier 4 sits the French backdoor session — 44 commands in the first 80 seconds (connection remained open for 10 hours) — and the 383 sessions that wrote SSH authorized keys. Easter egg triggers provide a behavioral signal within this tier: 4,124 distinct sessions (spanning Tiers 3 and 4) triggered at least one trap. Among specific traps, 3,693 sessions triggered <code>run_payload</code>, 3,643 triggered <code>chmod_exe</code>, 311 triggered <code>passwd_harvest</code>, and 5 reached the <code>crown_jewel</code> wallet trap.</p>
+<h3>5c. Credentials They Tried</h3>
+<p><strong>Password patterns:</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Custom (leaked or wordlist)</td>
+<td>50,562</td>
+</tr>
+<tr>
+<td>Dictionary word</td>
+<td>30,905</td>
+</tr>
+<tr>
+<td>Numeric only</td>
+<td>29,313</td>
+</tr>
+<tr>
+<td>IoT default</td>
+<td>18,344</td>
+</tr>
+<tr>
+<td>Service default</td>
+<td>4,872</td>
+</tr>
+<tr>
+<td>Keyboard walk</td>
+<td>1,455</td>
+</tr>
+<tr>
+<td>Public key</td>
+<td>559</td>
+</tr>
+<tr>
+<td>Crypto-related</td>
+<td>103</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Top 10 passwords:</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Password</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>admin123</td>
+<td>15,938</td>
+</tr>
+<tr>
+<td>2</td>
+<td>support</td>
+<td>2,219</td>
+</tr>
+<tr>
+<td>3</td>
+<td>admin</td>
+<td>1,615</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1234</td>
+<td>586</td>
+</tr>
+<tr>
+<td>5</td>
+<td>123456</td>
+<td>387</td>
+</tr>
+<tr>
+<td>6</td>
+<td>root</td>
+<td>386</td>
+</tr>
+<tr>
+<td>7</td>
+<td>(blank)</td>
+<td>290</td>
+</tr>
+<tr>
+<td>8</td>
+<td>password</td>
+<td>266</td>
+</tr>
+<tr>
+<td>9</td>
+<td>ubuntu</td>
+<td>235</td>
+</tr>
+<tr>
+<td>10</td>
+<td>ubnt</td>
+<td>221</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Top 10 usernames:</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Username</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>root</td>
+<td>68,468</td>
+</tr>
+<tr>
+<td>2</td>
+<td>azureuser</td>
+<td>24,911</td>
+</tr>
+<tr>
+<td>3</td>
+<td>admin</td>
+<td>21,967</td>
+</tr>
+<tr>
+<td>4</td>
+<td>support</td>
+<td>2,628</td>
+</tr>
+<tr>
+<td>5</td>
+<td>user</td>
+<td>1,648</td>
+</tr>
+<tr>
+<td>6</td>
+<td>ubuntu</td>
+<td>986</td>
+</tr>
+<tr>
+<td>7</td>
+<td>testuser</td>
+<td>780</td>
+</tr>
+<tr>
+<td>8</td>
+<td>ubnt</td>
+<td>709</td>
+</tr>
+<tr>
+<td>9</td>
+<td>test</td>
+<td>619</td>
+</tr>
+<tr>
+<td>10</td>
+<td>debian</td>
+<td>614</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>azureuser</code> ranking second among targeted usernames is a notable signal. This is not a generic default. <code>azureuser</code> is the default administrative account created by Azure when provisioning a Linux virtual machine. Its presence at rank two in the credential list indicates that attacker wordlists have been updated to reflect Azure's default naming convention. Operators running Azure VMs who kept the default <code>azureuser</code> account with password authentication enabled are a specific, identified target.</p>
+<p>The password <code>g5=$TkXxp=a6oM!</code> appeared 119 times. A randomized-looking credential tried 119 times across this dataset suggests it originated from a leaked credentials list, not a brute-force generator. Someone had this specific password associated with a real account somewhere, and the credential ended up in a wordlist that multiple scanning tools are running.</p>
+<p>290 sessions attempted a blank password. 559 sessions attempted public key authentication. Both are instrumentation data points: the blank attempts probe for misconfigured accounts, while the public key attempts suggest attackers who have already obtained a private key from a prior compromise and are testing it across new targets.</p>
+<p>The <code>crypto_related</code> category (103 matches) carries a caveat. The classifier identifies passwords containing terms associated with cryptocurrency, but it also picks up partial matches. The word "elizabeth" would match, for example, if the classifier keys on substring patterns. The 103 number is an overcount of crypto-themed credentials.</p>
+<h3>5d. Return Visitors</h3>
+<p>129,956 sessions (95.5% of the total) came from IP addresses that had connected before. 3,830 of the 6,145 unique attacker IPs in the dataset returned at least once. (See Section 4d for full detail.)</p>
+<p><strong>Top 5 IPs by session count:</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>IP</th>
+<th>Country</th>
+<th>ASN</th>
+<th>Sessions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>89[.]39[.]121[.]98</td>
+<td>Germany</td>
+<td>AS215439 Play2go</td>
+<td>29,230</td>
+</tr>
+<tr>
+<td>210[.]2[.]144[.]34</td>
+<td>Pakistan</td>
+<td>AS23966 LINKdotNET</td>
+<td>21,075</td>
+</tr>
+<tr>
+<td>51[.]89[.]235[.]201</td>
+<td>United Kingdom</td>
+<td>AS16276 OVH</td>
+<td>13,646</td>
+</tr>
+<tr>
+<td>38[.]58[.]169[.]236</td>
+<td>Mexico</td>
+<td>AS174 Cogent</td>
+<td>8,949</td>
+</tr>
+<tr>
+<td>138[.]124[.]4[.]81</td>
+<td>Estonia</td>
+<td>AS41745 Baykov</td>
+<td>4,081</td>
+</tr>
+</tbody>
+</table></div>
+<p>These five IPs alone account for 76,981 sessions, 56.5% of the dataset total. The return behavior is not curiosity. It is automation. These tools connect, authenticate, execute their script, disconnect, and loop. Every successful credential accepted during the run period put the server on a list that these tools would revisit on a schedule. For defenders, this means that a brute-force success event is not a one-time intrusion. It is enrollment in a recurring campaign.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 6</span>When They Were Active</h2>
+<p><strong>Hourly session distribution (operator IPs and 38[.]58[.]169[.]236 excluded):</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>UTC Hour</th>
+<th>Sessions</th>
+<th>UTC Hour</th>
+<th>Sessions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00:00</td>
+<td>3,843</td>
+<td>12:00</td>
+<td>6,804</td>
+</tr>
+<tr>
+<td>01:00</td>
+<td>3,704</td>
+<td>13:00</td>
+<td>6,935</td>
+</tr>
+<tr>
+<td>02:00</td>
+<td>3,744</td>
+<td>14:00</td>
+<td>8,994</td>
+</tr>
+<tr>
+<td>03:00</td>
+<td>3,692</td>
+<td>15:00</td>
+<td>7,750</td>
+</tr>
+<tr>
+<td>04:00</td>
+<td>3,819</td>
+<td>16:00</td>
+<td>6,390</td>
+</tr>
+<tr>
+<td>05:00</td>
+<td>4,708</td>
+<td>17:00</td>
+<td>5,213</td>
+</tr>
+<tr>
+<td>06:00</td>
+<td>4,716</td>
+<td>18:00</td>
+<td>5,468</td>
+</tr>
+<tr>
+<td>07:00</td>
+<td>4,323</td>
+<td>19:00</td>
+<td>8,408</td>
+</tr>
+<tr>
+<td>08:00</td>
+<td>4,784</td>
+<td>20:00</td>
+<td>5,093</td>
+</tr>
+<tr>
+<td>09:00</td>
+<td>5,029</td>
+<td>21:00</td>
+<td>4,077</td>
+</tr>
+<tr>
+<td>10:00</td>
+<td>5,829</td>
+<td>22:00</td>
+<td>3,697</td>
+</tr>
+<tr>
+<td>11:00</td>
+<td>6,405</td>
+<td>23:00</td>
+<td>3,739</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two clear peaks emerge once the 38[.]58[.]169[.]236 credential-validation wave is excluded from the data. The largest is 14:00 UTC with 8,994 sessions. The second is 19:00 UTC with 8,408 sessions. The overnight baseline runs between 3,692 and 3,843 sessions per hour from midnight through 04:00 UTC.</p>
+<p>14:00 UTC corresponds to 10:00 AM EDT, 4:00 PM CEST, 7:00 PM PKT/IST. The afternoon peak is consistent with business-hours activity across multiple active source regions simultaneously. 19:00 UTC corresponds to 3:00 PM EDT, 9:00 PM CEST. The evening secondary peak is consistent with a shift in active scanning infrastructure toward US-centric or Americas-centric operators.</p>
+<p>A prior version of this report noted an anomalous 02:00 to 10:00 UTC peak. That pattern was an artifact. <code>38[.]58[.]169[.]236</code> ran its entire credential-validation sweep between 02:46 and 10:56 UTC on May 22, 2026, producing a concentrated burst that skewed the hourly distribution. With that IP excluded, the true shape of the data is a midday build, an afternoon peak, a moderate evening secondary peak, and a quiet overnight floor.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 7</span>MITRE ATT&amp;CK Mapping</h2>
+<p><em>Counts are sessions per technique; one session can map to multiple techniques; rows do not sum to the total. "% of sessions" is out of 136,128.</em></p>
+<div class="table-wrap"><table>
+<thead><tr><th>Technique</th><th>ID</th><th>Tactic</th><th>Sessions</th><th>% of sessions</th></tr></thead>
+<tbody>
+<tr><td>Brute Force</td><td>T1110</td><td>Credential Access</td><td>136,128</td><td>100%</td></tr>
+<tr><td>Valid Accounts</td><td>T1078</td><td>Defense Evasion / Persistence</td><td>136,128</td><td>100%</td></tr>
+<tr><td>System Information Discovery</td><td>T1082</td><td>Discovery</td><td>5,644</td><td>4.1%</td></tr>
+<tr><td>File and Directory Permissions Modification: Linux</td><td>T1222.002</td><td>Defense Evasion</td><td>4,281</td><td>3.1%</td></tr>
+<tr><td>Process Discovery</td><td>T1057</td><td>Discovery</td><td>4,175</td><td>3.1%</td></tr>
+<tr><td>Resource Hijacking (crypto mining)</td><td>T1496</td><td>Impact</td><td>3,692</td><td>2.7%</td></tr>
+<tr><td>Hide Artifacts: Hidden Files and Directories</td><td>T1564.001</td><td>Defense Evasion</td><td>3,862</td><td>2.8%</td></tr>
+<tr><td>Command and Scripting Interpreter: Unix Shell</td><td>T1059.004</td><td>Execution</td><td>69,436</td><td>51.0%</td></tr>
+<tr><td>Scheduled Task/Job: Cron</td><td>T1053.003</td><td>Persistence</td><td>3,654</td><td>2.7%</td></tr>
+<tr><td>Create or Modify System Process: Systemd Service</td><td>T1543.002</td><td>Persistence</td><td>3,590</td><td>2.6%</td></tr>
+<tr><td>OS Credential Dumping: /etc/passwd and /etc/shadow</td><td>T1003.008</td><td>Credential Access</td><td>933</td><td>0.7%</td></tr>
+<tr><td>System Owner/User Discovery</td><td>T1033</td><td>Discovery</td><td>803</td><td>0.6%</td></tr>
+<tr><td>Ingress Tool Transfer</td><td>T1105</td><td>Command and Control</td><td>782</td><td>0.6%</td></tr>
+<tr><td>File and Directory Discovery</td><td>T1083</td><td>Discovery</td><td>569</td><td>0.4%</td></tr>
+<tr><td>System Network Configuration Discovery</td><td>T1016</td><td>Discovery</td><td>509</td><td>0.4%</td></tr>
+<tr><td>Virtualization/Sandbox Evasion: System Checks (honeypot fingerprinting)</td><td>T1497.001</td><td>Defense Evasion</td><td>382</td><td>0.3%</td></tr>
+<tr><td>System Network Connections Discovery</td><td>T1049</td><td>Discovery</td><td>383</td><td>0.3%</td></tr>
+<tr><td>Account Manipulation: SSH Authorized Keys</td><td>T1098.004</td><td>Persistence</td><td>383</td><td>0.3%</td></tr>
+<tr><td>Account Discovery: Local Account (/etc/passwd only)</td><td>T1087.001</td><td>Discovery</td><td>132</td><td>0.1%</td></tr>
+<tr><td>Indicator Removal: Clear Command History</td><td>T1070.003</td><td>Defense Evasion</td><td>34</td><td>0.025%</td></tr>
+<tr><td>Impair Defenses: Impair Command History Logging</td><td>T1562.003</td><td>Defense Evasion</td><td>34</td><td>0.025%</td></tr>
+<tr><td>Abuse Elevation Control Mechanism: Sudo</td><td>T1548.003</td><td>Privilege Escalation</td><td>29</td><td>0.021%</td></tr>
+<tr><td>Create Account: Local Account</td><td>T1136.001</td><td>Persistence</td><td>25</td><td>0.018%</td></tr>
+<tr><td>Command and Scripting Interpreter: Python</td><td>T1059.006</td><td>Execution</td><td>12</td><td>0.009%</td></tr>
+</tbody>
+</table></div>
+
+<p><strong>Note on T1497.001 and T1049 (same campaign):</strong> The original database tagged 382 sessions with T1552.007 (Container API Credentials). On examination, these sessions run <code>test -f /.dockerenv</code>, <code>test -f /run/.containerenv</code>, and <code>ls /opt/cowrie /home/richard /etc/cowrie</code> — they are fingerprinting for Docker containers and Cowrie honeypot installations, not accessing real container API credentials. The behavior is a fit for T1497.001 (Virtualization/Sandbox Evasion: System Checks). The same 376 of these 382 sessions are also the source of the T1049 (System Network Connections Discovery) count: the Cowrie-detection campaign runs <code>netstat -tulpn</code> as part of its recon template, which drives that tag. T1049 without this campaign = 7 sessions. T1098.004 (SSH key writing, 383 sessions) is a <em>completely separate</em> campaign with zero session overlap with T1497.001. See the sidebar in the Notable Sessions section.</p>
+
+<p><strong>Note on T1059.004 count:</strong> The value 69,436 is all command-bearing sessions — every session that issued at least one command (Tiers 2+3+4: 64,339 + 1,073 + 4,024). SSH exec-channel commands invoke the user's shell the same way interactive sessions do (sshd passes the command string to the shell), so every session that ran commands qualifies for T1059.004. The database's internal <code>mitre_tags</code> column tagged only 3,654 sessions (the PTY/interactive subset); that tagging was incomplete. T1053.003 (Cron, 3,654) is a subset of the miner-campaign sessions and is no longer a tie with T1059.004.</p>
+
+<p>Discovery techniques dominate the top of the table, which reflects the structure of the miner deployment campaign: recon first, then execution. The persistence techniques (T1053.003 Cron, T1098.004 SSH Keys, T1136.001 Create Account) map to the miner campaign's cron/systemd setup and the French backdoor session's hidden user creation. The credential-dumping technique (T1003.008 at 933 sessions) corresponds to the <code>passwd_harvest</code> easter egg triggers and represents sessions where attackers attempted to read <code>/etc/passwd</code> or <code>/etc/shadow</code>. The defense-evasion techniques at the bottom (T1070.003 Clear Command History, 34 sessions) mark the subset of attackers who knew to clean up after themselves.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 8</span>Notable Sessions</h2>
+<h3>8a. The French Backdoor Factory</h3>
+<p>Session ID <code>2b0e14c1</code> arrived on June 18, 2026 at 11:09 UTC from IP <code>212[.]112[.]19[.]166</code>, registered to Glesys AB on AS42708 in Finland. The session ran 44 commands over its lifetime, making it one of the most command-dense sessions in the dataset.</p>
+<p>The first phase was standard reconnaissance. The attacker checked system information, verified the current user context, explored the directory structure, and confirmed network configuration. Nothing unusual. Then the attacker pasted a multi-part shell payload written in French.</p>
+<p>The payload was structured with labeled sections. <code>DÉTECTION OS</code> ran conditional checks to identify whether the system was running FreeBSD, a Debian-based distribution, or a Red Hat-based distribution. Each branch executed the correct commands for that OS family. <code>CRÉATION DES UTILISATEURS</code> created two hidden user accounts. The first was <code>sys_admin</code> with its home directory set to <code>/var/.sys_admin</code>. The second was <code>r00t</code> with its home directory at <code>/var/.sys_temp</code>. Both accounts received the password <code>Hackers666</code>. Both were added to the <code>sudo</code> group on Debian-based systems and the <code>wheel</code> group on Red Hat-based systems, giving them full administrative privileges. <code>DOSSIERS + PERMISSIONS</code> created the hidden home directories and set appropriate ownership. <code>NETTOYAGE SILENCIEUX</code> (silent cleanup) disabled bash history for both accounts by setting <code>HISTFILE=/dev/null</code> and <code>HISTSIZE=0</code>, ensuring no commands run under those accounts would be logged.</p>
+<p>The entire payload was constructed to produce no stdout output. Every command was redirected to <code>/dev/null</code> or suppressed. An observer watching terminal output would see nothing happen.</p>
+<p>This session scored 8 on the dataset's internal severity scale, the highest assigned score. The execution was automated — all 44 commands fired in under 80 seconds from a standard recon template — but the payload itself was clearly hand-crafted: full French-language inline comments, multi-distribution OS detection logic, and proper error handling. Most commodity attack tooling is written in English and pulled from shared repositories. This script reads like something built by a specific operator for their own use. The attacker demonstrated awareness of stealth techniques (hidden directories in <code>/var</code>, suppressed output, history deletion) and privilege escalation paths across multiple Linux distributions. The automation means this operator was not typing in real time, but someone did the engineering work.</p>
+<h3>8b. The Miner Eviction Squad</h3>
+<p>3,210 sessions across multiple source IPs ran an identical 93-command script. The script's internal logic is consistent enough that it almost certainly originated from a shared source: a GitHub repository, an underground forum post, or a direct toolkit transfer between operators.</p>
+<p>The script executes in a fixed sequence. First, <code>uname</code> and related commands fingerprint the system. Second, the script searches for a writable directory, with <code>/dev/shm</code> as the preferred target (it is an in-memory filesystem, meaning the dropped files do not touch disk and are invisible to disk-based monitoring tools). Third, the script writes <code>w.sh</code> inline using <code>cat</code> with a heredoc, then runs <code>chmod +x w.sh</code> to make it executable. Fourth, the script establishes two persistence mechanisms: a crontab entry and a systemd unit file named <code>watcher-netai.service</code>. The systemd unit watches for the miner process and restarts it if killed. Fifth, the script runs a kill-competitor loop, repeating 12 or more times: <code>readlink -f /proc/root/exe</code> followed by <code>kill -9 root</code>, then <code>readlink -f /proc/solana/exe</code> followed by <code>kill -9 solana</code>. Finally, the script drops a binary named <code>astats</code> into <code>/dev/shm</code>.</p>
+<p>The <code>kill -9 solana</code> command requires context. The miner script does not know the Solana service PID directly. Instead, it reads usernames from the fake <code>ps aux</code> output — "root" and "solana" — and passes them to both <code>readlink -f /proc/&lt;username&gt;/exe</code> and <code>kill -9 &lt;username&gt;</code>. On real Linux, <code>/proc/</code> directories are numbered by PID, so <code>/proc/solana/exe</code> does not exist and <code>kill -9 solana</code> (which expects a numeric PID) would fail. These commands are a honeypot artifact: the custom fake shell responded to <code>/proc/root/exe</code> and <code>/proc/solana/exe</code> as if they were valid paths, producing logged output that doesn't reflect what would happen on a real target. On actual compromised servers, this script correctly resolves numeric PIDs from <code>ps</code> output. The kill loop is generic competitor-eviction — any miner running as a user named "solana" would be targeted, regardless of whether Solana-the-blockchain is involved.</p>
+<p>The <code>astats</code> binary name is an indicator of compromise. Any server with an <code>astats</code> binary in <code>/dev/shm</code> or another temp-filesystem location should treat it as a strong signal of this campaign.</p>
+<h3>8c. The First Knock</h3>
+<p>At 23:09:48 UTC on April 27, 2026, the honeypot recorded its first session. The server had been live for less than a minute. The IP was <code>2[.]57[.]122[.]238</code>, geolocated to Amsterdam, Netherlands, on AS47890 (Unmanaged LTD). The attacker used username <code>sol</code> and password <code>12345678</code>.</p>
+<p>The four commands in the session tell a clear story:</p>
+<pre><code>/bin/./uname -s -v -n -r -m
+uptime -p
+lspci | grep VGA
+nvidia-smi -q
+</code></pre>
+<p>The first command uses an unusual path (<code>/bin/./uname</code>) that may reflect an attempt to evade command-logging tools that filter on exact command strings. The output contains kernel version, hostname, and architecture. The second command checks system uptime. The third queries PCI hardware for VGA/GPU devices. The fourth runs NVIDIA's system management interface in full query mode, returning detailed information about GPU drivers, memory, temperature, and utilization.</p>
+<p>This attacker was GPU hunting. The server's Solana validator fiction may have drawn this specific session, as the attacker used username <code>sol</code>. However, Solana validators do not require GPU hardware — this session was hunting for cryptocurrency mining capacity generally. The speed of this first contact, under 60 seconds from server launch, reflects the density of automated scanning on the public internet. A new server on port 22 does not get hours to settle in. It gets seconds.</p>
+<p>The ASN AS47890 (Unmanaged LTD) appears throughout this dataset. Three high-volume IPs from AS47890 are among the top IOC entries in Section 10 (2[.]57[.]121[.]25, 2[.]57[.]121[.]112, and 193[.]46[.]255[.]86), along with 2[.]57[.]122[.]238 — the very first attacker, which contributed a single session. Together this ASN produced 7,218 total sessions. The first session was the first of many from this network.</p>
+<h3>The Five Who Found the Wallet</h3>
+<p>Five sessions triggered the <code>crown_jewel</code> easter egg — meaning they navigated to and read <code>wallet.json</code>, the fake Solana hot wallet in the simulated filesystem. These are the only on-thesis evidence in the dataset that the Solana fiction attracted meaningful attacker attention.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Session</th><th>IP (defanged)</th><th>ASN</th><th>Date</th><th>How they got there</th></tr></thead>
+<tbody>
+<tr>
+  <td><code>f6385669</code></td>
+  <td><code>144[.]172[.]99[.]18</code></td>
+  <td>AS14956 RouterHosting LLC (US)</td>
+  <td>Jun 3, 2026</td>
+  <td>Manual step-by-step navigation: <code>cd ..</code>, <code>ls</code>, <code>cd home</code>, typo <code>cx ..</code>, misspelled <code>solona</code>, Windows <code>dir</code> command, eventually reached <code>/home/solana</code> and ran <code>cat private_keys_backup.txt</code> then <code>cat wallet.json</code>. 27 commands, 243 seconds. Confidence: likely human.</td>
+</tr>
+<tr>
+  <td><code>a164ca21</code></td>
+  <td><code>173[.]66[.]243[.]238</code></td>
+  <td>AS701 Verizon Business (US)</td>
+  <td>Jun 16, 2026</td>
+  <td>Direct: <code>cd</code>, <code>ls</code>, <code>cat wallet.json</code>. 3 commands, 142 seconds. This was the first of 21 sessions from this IP that day — see Hands on the Keyboard section.</td>
+</tr>
+<tr>
+  <td><code>0536f088</code></td>
+  <td><code>37[.]153[.]130[.]70</code></td>
+  <td>AS58224 Iran Telecommunication Company (IR)</td>
+  <td>Jul 10, 2026</td>
+  <td>Ran <code>ls</code>, <code>top</code> (played the in-shell game briefly), <code>htop</code>, then <code>cat wallet.json</code>. 5 commands, 110 seconds.</td>
+</tr>
+<tr>
+  <td><code>a79e32c5</code></td>
+  <td><code>18[.]171[.]210[.]244</code></td>
+  <td>AS16509 Amazon.com Inc. (UK)</td>
+  <td>Jul 12, 2026</td>
+  <td>Ran <code>ls</code> twice, then <code>cat validator-keypair.json</code>, then <code>cat wallet.json</code>. 4 commands, 45 seconds.</td>
+</tr>
+<tr>
+  <td><code>ddedacd4</code></td>
+  <td><code>18[.]171[.]210[.]244</code></td>
+  <td>AS16509 Amazon.com Inc. (UK)</td>
+  <td>Jul 12, 2026</td>
+  <td>Same IP, 8 minutes later. Ran <code>ls</code> once, session ended. 1 command, 14 seconds. Likely same actor returning to confirm access or grab additional files.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two sessions came from the same Amazon IP (18[.]171[.]210[.]244), 8 minutes apart on July 12. The first grabbed both the validator keypair and the wallet; the second returned and ran a single <code>ls</code>. Whether that's confirmation of access, a second tool in a pipeline, or the same operator checking their work is inference — but the timing is consistent with one person revisiting. Together, the five sessions come from four distinct IPs across three continents — North America (RouterHosting US and Verizon US), Asia (Iran TCI), and Europe (Amazon UK) — with no behavioral overlap suggesting a coordinated actor.</p>
+<p>None of the five navigated using <code>find</code> or <code>grep</code> on wallet filenames — all either browsed directory-by-directory or already knew the path. Three of the five used <code>ls</code> to orient before opening any file. The RouterHosting session (<code>f6385669</code>) found the wallet in 4 minutes of manual exploration; the Verizon session (<code>a164ca21</code>) got there in 3 commands.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 9</span>Hands on the Keyboard</h2>
+<p>Most of what happens in this dataset is automation on top of automation: scanners finding open ports, tools validating credentials, scripts running the same 93 commands in sequence. But a small number of sessions have timing, behavior, and mistakes that point to a human being at the other end. Here are the ones worth naming.</p>
+<p><em>Methodology: sessions were scored on five signals — inter-command timing variance, shell escape attempts, typos and corrections, reactive navigation (commands that reference output from prior responses), and behavioral uniqueness. Timing was computed from the events table timestamps. All sessions below were reviewed command-by-command. Confidence labels are: "likely human or AI-driven agent" where timing is consistent but automation cannot be ruled out; "likely human" where multiple non-timing signals converge. IPs on residential and business ISPs are withheld; only ISP and region are shown.</em></p>
+
+<h3>The Explorer — Washington DC metro area, Verizon FiOS</h3>
+<p><strong>Sessions:</strong> 21 visits on June 16, 2026, plus two later returns. <strong>ISP:</strong> Verizon Business FiOS, Washington DC metro area. <strong>Confidence:</strong> likely human or AI-driven agent.</p>
+<p>The same source connected 21 times in six hours, always as <code>labuser</code> with passwords that progressively shortened: <code>password123</code> → <code>wer</code> → <code>nn</code> → <code>n</code> → <code>f</code> → <code>d</code> → <code>g</code> → (empty) → <code>a</code>. Someone was iterating on logins, learning what the server would accept. On the first visit, three commands in: <code>cat wallet.json</code>. Crown jewel. Then they came back.</p>
+<p>Subsequent sessions show systematic exploration. They read <code>README.txt</code>, checked <code>.bash_history</code> and <code>.ssh/authorized_keys</code>, examined cron entries and systemd units, and spent three separate sessions on <code>DO_NOT_OPEN.zip</code> — first using Python's <code>chr()</code> mapping to extract printable characters, then reading raw binary, then running a hex-encoded <code>import os; os.system('ls -la /')</code> to try to break out of the shell through Python.</p>
+<p>They also probed the shell environment directly: <code>echo $PROMPT_COMMAND</code>, <code>unset PROMPT_COMMAND</code>, <code>echo $TMOUT</code>, <code>export TMOUT=0</code>. Then tried <code>/bin/bash --norc --noprofile</code> to spawn a different shell. The session stayed 5 minutes past each attempt with no success, then reconnected and tried something else.</p>
+<p><strong>Timing:</strong> Across 105 inter-command gaps in all sessions — minimum 0.0 s (multi-line commands logged separately), median 12.7 s, mean 29.2 s, max 175.6 s, stdev 38.3 s. The distribution is consistent with a person reading output and deciding what to try next, though a sufficiently agentic system could also produce this pattern.</p>
+<p>Easter eggs triggered: <code>crown_jewel</code>, <code>self_destruct</code> (twice), <code>dare_zip</code> (three times), <code>python_repl</code> (six times).</p>
+
+<h3>The Navigator — RouterHosting LLC VPS (US)</h3>
+<p><strong>Session:</strong> f6385669, June 3, 2026. <strong>ASN:</strong> AS14956 RouterHosting LLC (US). <strong>Confidence:</strong> likely human.</p>
+<p>Found the wallet in 4 minutes through navigating the fake filesystem with visible uncertainty. The command sequence:</p>
+<pre style="background:#0a0a0f;color:#e8e8e8;padding:1em;border-left:3px solid #ff2d78;overflow-x:auto;font-size:0.85em;line-height:1.6;">cd ..            → ls              → cd home         → ls
+cx ..            ← typo            → solona          ← misspelled 'solana'
+ls               → cd solona       ← still wrong     → ls
+cat solona       → cat solana      → s               ← abbreviated
+ls               → cd ubuntu       → s               → ls
+cd .             → cd ..           → s               → ls
+cd solana        → ls
+cat private_keys_backup.txt
+[... 1m 37s pause ...]
+cat wallet.json</pre>
+<p>Two typos (<code>cx ..</code> for <code>cd ..</code>, <code>solona</code> for <code>solana</code>), command abbreviations (<code>s</code>, presumably meaning <code>ls</code>), and a 97-second gap before the final <code>cat wallet.json</code> after reading the fake private keys. The session reads like someone carefully going through a filesystem they've never seen before, not a tool executing a path it was given.</p>
+
+<h3>Sidebar: The Bots That Checked for Honeypots</h3>
+<p>Not human — but worth a mention. A campaign of 382 sessions (from multiple source IPs, including 128[.]24[.]160[.]229) ran an automated recon script that explicitly tested for Cowrie, the most commonly deployed SSH honeypot:</p>
+<pre style="background:#0a0a0f;color:#e8e8e8;padding:1em;border-left:3px solid #ff2d78;overflow-x:auto;font-size:0.85em;line-height:1.6;">ls /opt/cowrie /home/richard /etc/cowrie 2>&amp;1   # Cowrie default paths (/home/richard is Cowrie's fake-filesystem default user)
+test -f /.dockerenv                              # Docker container check
+test -f /run/.containerenv                       # Podman container check</pre>
+<p>This is a Cowrie-aware recon framework. The honeypot is not Cowrie — it's a custom Python implementation — so every check returned empty. The framework got a false negative and proceeded with its payload. A Cowrie deployment presumably would have been fingerprinted as a honeypot and skipped. These sessions drove the T1497.001 row in the ATT&amp;CK table, and their <code>netstat -tulpn</code> calls account for most of the T1049 (System Network Connections Discovery) count.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 10</span>Indicators of Compromise</h2>
+<p>The following IPs were the most active or most notable in the dataset. All addresses are defanged — all dots replaced with [.] following threat intelligence community convention to prevent accidental hyperlinking or automated scanning.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>IP (defanged)</th>
+<th>ASN</th>
+<th>Country</th>
+<th>Sessions</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>89[.]39[.]121[.]98</td>
+<td>AS215439 Play2go International</td>
+<td>Germany</td>
+<td>29,230</td>
+<td>High-volume scanner</td>
+</tr>
+<tr>
+<td>210[.]2[.]144[.]34</td>
+<td>AS23966 LINKdotNET Telecom</td>
+<td>Pakistan</td>
+<td>21,075</td>
+<td>High-volume scanner</td>
+</tr>
+<tr>
+<td>51[.]89[.]235[.]201</td>
+<td>AS16276 OVH SAS</td>
+<td>United Kingdom</td>
+<td>13,646</td>
+<td>High-volume scanner</td>
+</tr>
+<tr>
+<td>38[.]58[.]169[.]236</td>
+<td>AS174 Cogent Communications</td>
+<td>Mexico</td>
+<td>8,949</td>
+<td>Credential-validation sweep only</td>
+</tr>
+<tr>
+<td>138[.]124[.]4[.]81</td>
+<td>AS41745 Baykov Ilya Sergeevich</td>
+<td>Estonia</td>
+<td>4,081</td>
+<td>High-volume scanner</td>
+</tr>
+<tr>
+<td>2[.]57[.]121[.]25</td>
+<td>AS47890 Unmanaged LTD</td>
+<td>United Kingdom</td>
+<td>2,676</td>
+<td>Scanner</td>
+</tr>
+<tr>
+<td>2[.]57[.]121[.]112</td>
+<td>AS47890 Unmanaged LTD</td>
+<td>United Kingdom</td>
+<td>2,451</td>
+<td>Scanner</td>
+</tr>
+<tr>
+<td>193[.]46[.]255[.]86</td>
+<td>AS47890 Unmanaged LTD</td>
+<td>United Kingdom</td>
+<td>2,089</td>
+<td>Scanner</td>
+</tr>
+<tr>
+<td>212[.]112[.]19[.]166</td>
+<td>AS42708 Glesys AB</td>
+<td>Finland</td>
+<td>score-8</td>
+<td>French backdoor payload, hidden user creation</td>
+</tr>
+<tr>
+<td>50[.]56[.]159[.]185</td>
+<td>AS33070 Rackspace</td>
+<td>United States</td>
+<td>score-7</td>
+<td>wget, privilege escalation, file deletion</td>
+</tr>
+<tr>
+<td>35[.]243[.]242[.]201</td>
+<td>AS396982 Google LLC</td>
+<td>United States</td>
+<td>score-7</td>
+<td>wget, curl, run_payload</td>
+</tr>
+</tbody>
+</table></div>
+<p>Before blocking or reporting any of these IPs, verify their current status. IP addresses are reassigned. A cloud IP that hosted a scanner in May 2026 may belong to a legitimate business in October 2026. Use this list as a starting point for investigation, not an automatic blocklist.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 11</span>What You Should Do About It</h2>
+<p><strong>Password authentication on SSH is the root cause of everything in this report.</strong> Disable it. Open your SSH server configuration at <code>/etc/ssh/sshd_config</code> and set <code>PasswordAuthentication no</code>. Generate an SSH key pair with <code>ssh-keygen -t ed25519</code>, add the public key to <code>~/.ssh/authorized_keys</code> on your server, and confirm you can log in with the key before restarting the SSH service. Once key authentication works, no brute-force wordlist in the world can get in without your private key.</p>
+<p><strong>Moving SSH off port 22 reduces noise, not risk.</strong> Port 22 is the default. Move SSH to a high-numbered port (above 1024, something non-obvious), and automated scanners targeting port 22 will stop knocking. This is not a security control. A determined attacker will port-scan you. But it reduces log volume and eliminates low-effort commodity scanning from most of your authentication logs, which makes genuine threats easier to see.</p>
+<p><strong>If you are running Azure, audit your <code>azureuser</code> account immediately.</strong> <code>azureuser</code> was the second-most targeted username in this dataset, behind only <code>root</code>. Azure creates this account by default on Linux VMs. If your VM still has <code>azureuser</code> with password authentication enabled, your login credentials are being tried by automated tools right now. Rename the account, disable password auth, and restrict SSH access to known source IPs using Azure Network Security Groups if possible.</p>
+<p><strong>The Solana lure mostly didn't change attacker behavior.</strong> The honeypot was disguised as a Solana validator, but the majority of attackers treated it as a generic Linux server — credential stuffing, miner deployment, and reconnaissance scripts that are identical on any target. The first attacker used username <code>sol</code> and ran GPU enumeration commands (GPU hunting is relevant to crypto mining, not specifically to Solana validators, which do not require GPUs). Only 5 sessions out of 136,128 reached the <code>wallet.json</code> trap. The <code>crypto_related</code> password category (103 sessions) is an upper bound — the classifier catches partial substrings and may overcount. The miner-eviction loop killed processes running under the <code>solana</code> system user, but that is a generic account name in Linux Solana installs, not Solana-specific tooling. What the data supports: SSH-exposed servers are targeted by automated miner-deployment campaigns regardless of what they claim to be, and Solana infrastructure operators face the same baseline SSH risk as any internet-facing Linux server.</p>
+<p><strong>Most traffic came from rented hosting infrastructure, not residential botnets.</strong> After correcting the ASN classification (see methodology), 59.0% of sessions (80,340) originated from hosting providers, VPS platforms, and CDN/transit networks. The 41.0% residential and ISP traffic is substantial but not dominant. This suggests that most automated scanning and credential-validation campaigns are being run from rented cloud infrastructure — cheap, fast, and disposable — rather than compromised home devices.</p>
+<p><strong>A rapid-fire series of successful authentications with no subsequent activity is an active-attack signal, not a normal login pattern.</strong> Standard intrusion detection focuses on failed authentication (the "too many wrong passwords" pattern). The 38[.]58[.]169[.]236 event in this dataset produced 8,949 successful authentications in 8 hours with zero exploitation. Traditional fail-ban tools would not have flagged it. Configure monitoring to alert on any IP that authenticates successfully more than a threshold number of times (five is reasonable) within a short window, especially if session depth (command count) stays at zero or one.</p>
+<p><strong>After any suspected compromise, check cron and systemd before you check anything else.</strong> The miner deployment campaign in this dataset established persistence through two mechanisms: a crontab entry and a systemd unit file named <code>watcher-netai.service</code>. Run <code>crontab -l</code> for each user account, check <code>/etc/cron.d/</code>, review <code>systemctl list-units --type=service</code> for unfamiliar service names, and inspect <code>/etc/systemd/system/</code> for unit files you did not create. Also check <code>/dev/shm</code> for binaries: any executable file in an in-memory filesystem location is suspicious by default. A file named <code>astats</code> in <code>/dev/shm</code> is a specific indicator for the campaign documented in this report.</p>
+<hr />
+<div class="page-break"></div><h2><span class="section-num">Section 12</span>Limitations</h2>
+<p><strong>The honeypot is detectable.</strong> Sophisticated attackers running fingerprinting tools can identify a simulated SSH shell. A real Linux system responds differently than a scripted honeypot in edge cases. Attackers who detected the honeypot would have either left or changed their behavior. The dataset captures behavior from attackers who did not detect the simulation, or who continued anyway. The true distribution of attacker sophistication in the wild may differ from what is represented here.</p>
+<p><strong>AbuseIPDB was not populated during the run.</strong> This report does not include reputation scores from AbuseIPDB or similar threat intelligence platforms. Cross-referencing the top IPs against known-malicious registries would strengthen the IOC section but was not part of the data collection process.</p>
+<p><strong>The <code>crypto_related</code> password classifier overcounts.</strong> The 103 passwords flagged as crypto-related include partial string matches. Any password containing substrings that happen to overlap with cryptocurrency terms (coin names, wallet-related words, or common token tickers) would be captured by this classifier. The 103 figure should be treated as an upper bound, not a precise count of passwords crafted with cryptocurrency systems in mind.</p>
+<p><strong>Geolocation carries uncertainty.</strong> IP-to-country attribution uses the registered location of the IP block, not the physical location of the device or operator. VPNs, proxy servers, and Tor exit nodes can place an attack's apparent origin in a country that has nothing to do with the actual operator. Country-level statistics in this report describe where traffic came from, not where attackers are.</p>
+<p><strong>Comparison to prior reports requires caution.</strong> This report is the definitive record of the full 147-day run. Interim reports produced during the run period used different exclusion sets, different run-length denominators, and in some cases included the 38[.]58[.]169[.]236 sessions in hourly distribution data. Numbers from prior reports should not be compared to numbers in this report without accounting for these differences.</p>
+<p><strong>The shell simulation affects command data.</strong> The honeypot responded to commands with scripted output, not real system responses. Attackers may have issued different follow-on commands than they would have on a real system based on the simulated responses they received. Command counts and sequences reflect behavior in a simulated environment.</p>
+<p><strong>The miner campaign skews command-count statistics.</strong> The 93-command miner deployment script ran in 3,210 sessions, contributing a concentrated volume of specific commands. Any command that appears in that script (readlink, kill, chmod, crontab operations, systemd writes) is skewed upward in the overall command frequency table. The top-10 command list is partially a portrait of that single campaign rather than a representative cross-section of all attacker activity.</p>
+<hr />
+<div class="page-break"></div><h2>Closing</h2>
+<p>147 days of data collected while doing absolutely nothing except existing on the internet with port 22 open. No provocation. No interaction. Just presence. The internet sent 136,128 sessions, 414,070 commands, and one very motivated French-speaking backdoor architect who probably thought they were having a great Thursday.</p>
+<p>The lesson is the same one it has always been, and it will still be the same lesson in 147 more days: password authentication on SSH is a door that millions of automated tools know how to knock on, and they will never stop knocking</p>
+<p>Jenna | Hot Pink Huntress</p>
+</div>
+</body>
+</html>
