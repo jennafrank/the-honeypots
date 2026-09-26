@@ -17,6 +17,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Findings: 147 Days on the Internet](#findings-147-days-on-the-internet)
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Easter Eggs](#easter-eggs)
@@ -34,11 +35,74 @@
 
 ## Overview
 
-Sable Saint-Claire & The Honeypots is a **production-grade SSH honeypot** that impersonates a high-value Solana validator node. Attackers who connect are dropped into a fully convincing fake Bash shell — complete with realistic process lists, wallet balances, validator logs, and canary files — while every keystroke is silently logged, GeoIP-enriched, AbuseIPDB-checked, and MITRE ATT&CK-tagged in real time.
+Sable Saint-Claire & The Honeypots is a **production-grade SSH honeypot** that impersonates a high-value Solana validator node. Attackers who connect are dropped into a fully convincing fake Bash shell, complete with realistic process lists, wallet balances, validator logs, and canary files, while every keystroke is silently logged, GeoIP-enriched, and MITRE ATT&CK-tagged in real time. AbuseIPDB lookups are supported when an API key is configured; they were not populated during the 147-day run.
 
 Then the Easter eggs fire. And they *will* find them.
 
-Designed as a 30-day threat intelligence research platform. Built to be studied, starred, and forked.
+It ran on Azure for 147 calendar days, April 27 to September 21, 2026. Built to be studied, starred, and forked.
+
+---
+
+## Findings: 147 Days on the Internet
+
+Full report: [SSH Honeypot Threat Intelligence Report, 147 Days (PDF)](final/hot-pink-huntress-ssh-honeypot-report.pdf). All figures exclude five operator and friendly-test addresses.
+
+| Metric | Value |
+|---|---|
+| Run period | April 27 to September 21, 2026 (147 calendar days) |
+| Sessions | 136,128 (926 per day) |
+| Unique source IPs | 6,145 |
+| Credential combinations tried | 63,283 |
+| Commands logged | 414,070 |
+| Sessions from a returning IP | 129,956 (95.5%) |
+| Time to first attacker | Under 60 seconds after going live |
+
+### Who they were
+
+Almost everything was automation. 96.3% of sessions ran zero or one command.
+
+| Tier | Behavior | Sessions |
+|---|---|---|
+| 1. Silent authenticators | Log in, run nothing, leave. Pure credential probing. | 66,692 (49.0%) |
+| 2. Single-command validators | One command (usually `echo -e "\x6F\x6B"`, which prints "ok") to confirm the shell is live | 64,339 (47.3%) |
+| 3. Recon and escalation | 2 to 20 commands: enumeration, `/etc/passwd` and `/etc/shadow` reads, SSH key injection | 1,073 (0.8%) |
+| 4. Deployment campaigns | More than 20 commands, dominated by one 93-command miner script | 4,024 (3.0%) |
+
+### Top ATT&CK techniques
+
+Sessions per technique. One session can map to several techniques. T1110 (Brute Force) and T1078 (Valid Accounts) apply to all 136,128 sessions, because the honeypot accepted every credential.
+
+| Technique | Name | Sessions |
+|---|---|---|
+| T1059.004 | Command and Scripting Interpreter: Unix Shell | 69,436 (51.0%) |
+| T1082 | System Information Discovery | 5,644 (4.1%) |
+| T1222.002 | File and Directory Permissions Modification: Linux and Mac | 4,281 (3.1%) |
+| T1057 | Process Discovery | 4,175 (3.1%) |
+| T1564.001 | Hide Artifacts: Hidden Files and Directories | 3,862 (2.8%) |
+| T1496 | Resource Hijacking | 3,692 (2.7%) |
+| T1053.003 | Scheduled Task/Job: Cron | 3,654 (2.7%) |
+| T1543.002 | Create or Modify System Process: Systemd Service | 3,590 (2.6%) |
+| T1003.008 | OS Credential Dumping: /etc/passwd and /etc/shadow | 933 (0.7%) |
+| T1098.004 | Account Manipulation: SSH Authorized Keys | 383 (0.3%) |
+| T1497.001 | Virtualization/Sandbox Evasion: System Checks | 382 (0.3%) |
+
+### Notable sessions
+
+- **The miner eviction squad.** 3,210 sessions from multiple source IPs ran the same 93-command script: stage in `/dev/shm`, write `w.sh`, persist through cron and a systemd unit named `watcher-netai.service`, kill competing miners, then drop a binary named `astats`. An `astats` binary in `/dev/shm` is a strong indicator of this campaign.
+- **The credential-verification wave.** On May 22, one IP on AS174 (Cogent) logged in successfully 8,949 times in 8 hours and 10 minutes, running only the "ok" ping each time. Every login succeeded, so fail2ban-style tools that watch for failures would never flag it.
+- **The French backdoor factory.** Session `2b0e14c1` (June 18, AS42708 Glesys AB) fired 44 commands in under 80 seconds, then pasted a hand-built payload with French comments: OS detection across FreeBSD, Debian and Red Hat families, two hidden sudo users (`sys_admin` and `r00t`, homes under `/var/`), and bash history disabled. It scored highest on the dataset's severity scale.
+- **The five who found the wallet.** Only 5 sessions read the fake `wallet.json`. One (`f6385669`, June 3) got there by hand in 4 minutes, with typos (`cx ..`, `solona`) and a 97-second pause after reading the fake private keys.
+- **The bots that checked for honeypots.** 382 sessions ran a recon script that tested for Cowrie's default paths and for Docker and Podman containers. This honeypot is custom Python, not Cowrie, so every check came back clean and the script carried on.
+
+### What surprised me
+
+- **The lure barely mattered.** 147 days dressed as a Solana validator, and only 5 of 136,128 sessions went for the wallet. Attackers treated the box as generic Linux compute.
+- **The dangerous signal was success, not failure.** The biggest single-IP event was 8,949 successful logins with no follow-on activity. Detection built on failed-login counts misses it; session depth is the tell.
+- **Hosting providers, not home routers.** 59.0% of sessions came from hosting, VPS and transit networks. Most scanning runs on rented infrastructure.
+- **Azure's defaults are on the wordlists.** `azureuser`, the default Azure Linux admin account, was the second most tried username after `root`.
+- **Attackers fingerprint honeypots now.** A Cowrie-aware recon framework showed up in 382 sessions. A custom honeypot got past it; a default Cowrie install probably would not have.
+
+The takeaway for defenders: disable SSH password authentication. This honeypot accepted any password, and almost everything above started with one.
 
 ---
 
@@ -231,8 +295,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for a full technical breakdown.
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/sable-saint-claire.git
-cd sable-saint-claire
+git clone https://github.com/jennafrank/the-honeypots.git
+cd the-honeypots
 
 # Copy and configure environment
 cp .env.example .env
@@ -399,16 +463,12 @@ To suggest a new Easter egg, open an issue using the [Easter Egg Suggestion](.gi
 
 ## Author
 
-**Created by Sable Saint-Claire — Independent Security Researcher**
-
-Threat intelligence analyst and honeypot architect. GitHub: [@sablestclaire](https://github.com/sablestclaire)
+**Built by [Jenna Frank](https://github.com/jennafrank) (hacker alias: Sable Saint-Claire).**
 
 *"The best way to understand attackers is to let them think they've won."*
-
-Special thanks to research collaborator [Jenna Frank](https://github.com/jennafrank) for deployment, testing, and documentation support.
 
 ---
 
 ## License
 
-MIT © Sable Saint-Claire — see [LICENSE](LICENSE) for details.
+MIT © Jenna Frank. See [LICENSE](LICENSE) for details.
