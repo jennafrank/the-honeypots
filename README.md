@@ -17,6 +17,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Deep-Dive Analysis](#deep-dive-analysis)
 - [Findings: 147 Days on the Internet](#findings-147-days-on-the-internet)
 - [Features](#features)
 - [Screenshots](#screenshots)
@@ -40,6 +41,61 @@ Sable Saint-Claire & The Honeypots is a **production-grade SSH honeypot** that i
 Then the Easter eggs fire. And they *will* find them.
 
 It ran on Azure for 147 calendar days, April 27 to September 21, 2026. Built to be studied, starred, and forked.
+
+---
+
+## Deep-Dive Analysis
+
+Interactive HTML dashboards built from 69,979 command sessions across 153 days (April 27 – September 26, 2026). Download the HTML files and open locally — they're self-contained, no dependencies, dark mode supported.
+
+> **[`analysis/payload-variety.html`](analysis/payload-variety.html)** — Payload delivery methods, malware families by command shape, and real transcript cards showing what attackers actually typed.
+>
+> **[`analysis/deep-dive.html`](analysis/deep-dive.html)** — Four-tab deep dive: temporal patterns, persistence mechanisms, infrastructure reuse, and tradecraft evolution.
+
+### Payload Variety
+
+<p align="center">
+<img src="docs/screenshots/analysis_payload_variety.png" width="600" alt="Payload Variety Dashboard"/>
+</p>
+<p align="center"><em>Delivery methods, malware families, and real attacker transcripts</em></p>
+
+82.9% of file staging used **stdin-to-file** — piping the payload over the SSH channel, never touching the network. `curl` and `wget` fetches were a distant second. Four distinct malware families emerged by command shape: a 93-command miner installer (XorDDoS-style), fileless `curl|sh` pipelines, Mirai-style busybox campaigns, and command-substitution downloaders.
+
+### Temporal Patterns
+
+<p align="center">
+<img src="docs/screenshots/analysis_temporal.png" width="600" alt="Temporal Analysis"/>
+</p>
+<p align="center"><em>Hour-of-day × day-of-week heatmap and session distributions</em></p>
+
+Activity peaks at **05:00 UTC** (4,287 sessions) with a slight dip around 01:00 UTC. Weekends are busier than weekdays — Sunday topped at 12,204 sessions. No distinct "payload window" exists; attackers deploy whenever they connect.
+
+### Persistence Mechanisms
+
+<p align="center">
+<img src="docs/screenshots/analysis_persistence.png" width="600" alt="Persistence Deep Dive"/>
+</p>
+<p align="center"><em>Staging methods, execution paths, and the dominant persistence strategy</em></p>
+
+86.2% of staged payloads executed via **cron or systemd** — deferred execution, not direct runs. The dominant family (4,083 sessions) uses dual persistence: a cron `@reboot` + hourly entry AND a systemd user unit (`watcher-netai.service`), plus competitor cleanup that wipes other actors' crontabs after installing its own.
+
+### Infrastructure Reuse
+
+<p align="center">
+<img src="docs/screenshots/analysis_infrastructure.png" width="600" alt="Infrastructure Reuse"/>
+</p>
+<p align="center"><em>Source concentration, top operators, and reuse patterns</em></p>
+
+Extreme concentration: **4 sources account for 90.5% of all sessions** — but those were high-frequency scanners running no payloads. The real payload operators sit in the 2–50 session range, returning over days or weeks. 47% of all sources connected only once.
+
+### Tradecraft Evolution
+
+<p align="center">
+<img src="docs/screenshots/analysis_evolution.png" width="600" alt="Tradecraft Evolution"/>
+</p>
+<p align="center"><em>Monthly volumes, delivery method arrivals, and behavior class shifts</em></p>
+
+**Tradecraft didn't evolve — it arrived.** Every major delivery method except SCP pull was active within the first month. The only genuinely new behavior was a **split-across-connections** pattern in September: one source stages a payload via SCP in one session, then executes it from a fresh session 3 seconds later — evading same-session correlation rules.
 
 ---
 

