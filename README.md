@@ -59,7 +59,7 @@ Interactive HTML dashboards built from 69,979 command sessions across 153 days (
 </p>
 <p align="center"><em>Delivery methods, malware families, and real attacker transcripts</em></p>
 
-82.9% of file staging used **stdin-to-file** — piping the payload over the SSH channel, never touching the network. `curl` and `wget` fetches were a distant second. Four distinct malware families emerged by command shape: a 93-command miner installer (XorDDoS-style), fileless `curl|sh` pipelines, Mirai-style busybox campaigns, and command-substitution downloaders.
+82.9% of file staging used **stdin-to-file** — piping the payload over the SSH channel, never touching the network. `curl` and `wget` fetches were a distant second. Four distinct malware families emerged by command shape: an 81-command miner installer (XorDDoS-style), fileless `curl|sh` pipelines, Mirai-style busybox campaigns, and command-substitution downloaders.
 
 ### Temporal Patterns
 
@@ -101,7 +101,9 @@ Extreme concentration: **4 sources account for 90.5% of all sessions** — but t
 
 ## Findings: 147 Days on the Internet
 
-Full report: [SSH Honeypot Threat Intelligence Report, 147 Days (PDF)](final/hot-pink-huntress-ssh-honeypot-report.pdf). All figures exclude five operator and friendly-test addresses.
+Full report: [SSH Honeypot Threat Intelligence Report, 147 Days](https://jennafrank.github.io/the-honeypots/report.html) (corrected edition; [original PDF](final/hot-pink-huntress-ssh-honeypot-report.pdf)). All figures exclude five operator and friendly-test addresses.
+
+> **Correction (November 2026):** the first edition counted 414,070 commands. The sensor logs a chained command line once per part and again as a whole line, so that total double-counted. The corrected total is 370,429, and the miner script is 81 commands, not 93. Details: [command-count correction](docs/command-count-correction.md).
 
 | Metric | Value |
 |---|---|
@@ -109,7 +111,7 @@ Full report: [SSH Honeypot Threat Intelligence Report, 147 Days (PDF)](final/hot
 | Sessions | 136,128 (926 per day) |
 | Unique source IPs | 6,145 |
 | Credential combinations tried | 63,283 |
-| Commands logged | 414,070 |
+| Commands (echo entries removed) | 370,429 |
 | Sessions from a returning IP | 129,956 (95.5%) |
 | Time to first attacker | Under 60 seconds after going live |
 
@@ -121,8 +123,8 @@ Almost everything was automation. 96.3% of sessions ran zero or one command.
 |---|---|---|
 | 1. Silent authenticators | Log in, run nothing, leave. Pure credential probing. | 66,692 (49.0%) |
 | 2. Single-command validators | One command (usually `echo -e "\x6F\x6B"`, which prints "ok") to confirm the shell is live | 64,339 (47.3%) |
-| 3. Recon and escalation | 2 to 20 commands: enumeration, `/etc/passwd` and `/etc/shadow` reads, SSH key injection | 1,073 (0.8%) |
-| 4. Deployment campaigns | More than 20 commands, dominated by one 93-command miner script | 4,024 (3.0%) |
+| 3. Recon and escalation | 2 to 20 commands: enumeration, `/etc/passwd` and `/etc/shadow` reads, SSH key injection | 1,113 (0.8%) |
+| 4. Deployment campaigns | More than 20 commands, dominated by one 81-command miner script | 3,984 (2.9%) |
 
 ### Top ATT&CK techniques
 
@@ -144,7 +146,7 @@ Sessions per technique. One session can map to several techniques. T1110 (Brute 
 
 ### Notable sessions
 
-- **The miner eviction squad.** 3,210 sessions from multiple source IPs ran the same 93-command script: stage in `/dev/shm`, write `w.sh`, persist through cron and a systemd unit named `watcher-netai.service`, kill competing miners, then drop a binary named `astats`. An `astats` binary in `/dev/shm` is a strong indicator of this campaign.
+- **The miner eviction squad.** 3,210 sessions from multiple source IPs ran the same 81-command script: stage in `/dev/shm`, write `w.sh`, persist through cron and a systemd unit named `watcher-netai.service`, kill competing miners, then drop a binary named `astats`. An `astats` binary in `/dev/shm` is a strong indicator of this campaign.
 - **The credential-verification wave.** On May 22, one IP on AS174 (Cogent) logged in successfully 8,949 times in 8 hours and 10 minutes, running only the "ok" ping each time. Every login succeeded, so fail2ban-style tools that watch for failures would never flag it.
 - **The French backdoor factory.** Session `2b0e14c1` (June 18, AS42708 Glesys AB) fired 44 commands in under 80 seconds, then pasted a hand-built payload with French comments: OS detection across FreeBSD, Debian and Red Hat families, two hidden sudo users (`sys_admin` and `r00t`, homes under `/var/`), and bash history disabled. It scored highest on the dataset's severity scale.
 - **The five who found the wallet.** Only 5 sessions read the fake `wallet.json`. One (`f6385669`, June 3) got there by hand in 4 minutes, with typos (`cx ..`, `solona`) and a 97-second pause after reading the fake private keys.
