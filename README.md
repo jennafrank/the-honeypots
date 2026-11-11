@@ -10,7 +10,20 @@
 
 **A Python SSH honeypot disguised as a Solana validator node, with 17 Easter eggs, real-time analytics dashboard, and MITRE ATT&CK mapping.**
 
+**[Project site](https://jennafrank.github.io/the-honeypots/)** · **[Full report (147 days)](https://jennafrank.github.io/the-honeypots/report.html)** · **[Portfolio](https://www.JennaFrank.co)**
+
 </div>
+
+## What this demonstrates
+
+- **Building a sensor:** a working SSH deception sensor in Python (asyncssh, Docker), deployed on Azure and left exposed to the internet for 147 days.
+- **Threat analysis:** turning raw session data into findings: behaviour tiers, campaign fingerprints, ATT&CK mapping and indicators of compromise.
+- **Detection thinking:** for example, why counting failed logins misses an attacker whose logins succeed, and why most payloads never touched `wget` or `curl`.
+- **Data integrity:** finding a double-logging flaw in my own sensor, reproducing the published figures from the database and [correcting them in public](docs/command-count-correction.md).
+
+## Tools and skills
+
+Python 3 (asyncssh, Flask), Docker Compose, Azure VM, SQLite, GeoIP enrichment, MITRE ATT&CK, SSH and Linux attacker tradecraft, threat intelligence reporting.
 
 ---
 
@@ -22,6 +35,7 @@
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Easter Eggs](#easter-eggs)
+- [Repository Structure](#repository-structure)
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
@@ -275,6 +289,21 @@ Below are the trigger commands — but **not** what they do. That's for you to f
 
 ---
 
+## Repository Structure
+
+| Path | Contents |
+|---|---|
+| `honeypot/` | The sensor: SSH server, fake shell and filesystem, MITRE tagger, enrichment, SQLite storage |
+| `dashboard/` | Flask live dashboard |
+| `docs/` | GitHub Pages site: [`index.md`](docs/index.md), the corrected [full report](docs/report.html), the [correction note](docs/command-count-correction.md) and screenshots |
+| `final/` | Original PDF edition of the 147-day report and the short snack report |
+| `analysis/` | Self-contained HTML deep-dive dashboards (153-day window) |
+| `reports/` | [Brute-force analysis](reports/brute-force-lm-analysis.md) |
+| `generate_report.py` | Markdown and PDF report generator |
+| `ARCHITECTURE.md`, `EASTER_EGGS.md`, `REPORT_TEMPLATE.md` | Design notes, trap list, report template |
+
+---
+
 ## Architecture
 
 ```
@@ -521,7 +550,7 @@ To suggest a new Easter egg, open an issue using the [Easter Egg Suggestion](.gi
 
 ## Author
 
-**Built by [Jenna Frank](https://github.com/jennafrank) (hacker alias: Sable Saint-Claire).**
+**Built by [Jenna Frank](https://github.com/jennafrank) (hacker alias: Sable Saint-Claire).** Portfolio: [JennaFrank.co](https://www.JennaFrank.co)
 
 *"The best way to understand attackers is to let them think they've won."*
 
