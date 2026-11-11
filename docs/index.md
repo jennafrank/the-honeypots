@@ -4,7 +4,7 @@ title: The Honeypots
 
 ![Banner: a terminal prompt reading root@honeypot, with the title "Sable Saint-Clair and the Honey-Pots"](assets/banner.svg)
 
-**Jenna Frank (Hot Pink Huntress)** · [Portfolio](https://www.JennaFrank.co) · [Repository](https://github.com/jennafrank/the-honeypots)
+**Jenna Frank (Hot Pink Huntress)**, Security Operations Manager · [Portfolio](https://www.JennaFrank.co) · [Repository](https://github.com/jennafrank/the-honeypots)
 
 I built a custom Python SSH honeypot that poses as a Solana validator node, and left it on an Azure VM with port 22 open for 147 days (April 27 to September 21, 2026). It accepted every password, logged every command, and tagged each session with MITRE ATT&CK techniques. The [full threat intelligence report](report.html) covers 136,128 sessions from 6,145 source IPs: who connected, what they ran, and what defenders should do about it.
 

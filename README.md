@@ -550,7 +550,7 @@ To suggest a new Easter egg, open an issue using the [Easter Egg Suggestion](.gi
 
 ## Author
 
-**Built by [Jenna Frank](https://github.com/jennafrank) (hacker alias: Sable Saint-Claire).** Portfolio: [JennaFrank.co](https://www.JennaFrank.co)
+**Built by [Jenna Frank](https://github.com/jennafrank) (hacker alias: Sable Saint-Claire), Security Operations Manager.** Portfolio: [JennaFrank.co](https://www.JennaFrank.co)
 
 *"The best way to understand attackers is to let them think they've won."*
 
