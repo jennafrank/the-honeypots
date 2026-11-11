@@ -30,7 +30,7 @@ SSH password brute force is constant background noise on any internet-facing ser
 | Sessions from an IP seen before | 95.5% |
 
 - **Success is the signal, not failure.** One IP logged in successfully 8,949 times in about 8 hours and ran only an "ok" ping. Tools that count failed logins never see it.
-- **Mining, not wallet theft.** 3,692 sessions deployed a miner, and only 5 read the fake wallet. The main campaign was an 81-command script in 3,210 sessions. It staged in `/dev/shm`, persisted through cron and a systemd unit, and dropped a binary named `astats`.
+- **Mining, not wallet theft.** 3,692 sessions deployed a miner, and only 5 read the fake wallet. The main campaign was an 81-command script in 3,210 sessions (unverified, see [correction note](command-count-correction.md#not-reproduced-left-as-published)). It staged in `/dev/shm`, persisted through cron and a systemd unit, and dropped a binary named `astats`.
 - **Bots fingerprint honeypots.** 382 sessions ran checks for Cowrie's default paths and for containers.
 - **Recommendation:** disable SSH password authentication. Every session in the dataset started with an accepted password.
 
@@ -42,6 +42,7 @@ SSH password brute force is constant background noise on any internet-facing ser
 
 - [SSH Honeypot Threat Intelligence Report, 147 days](report.html) (corrected edition)
 - [Command-count correction note](command-count-correction.md)
+- [Report PDF, original edition (pre-correction)](https://github.com/jennafrank/the-honeypots/blob/main/final/hot-pink-huntress-ssh-honeypot-report.pdf): still shows 414,070 commands; see the [correction note](command-count-correction.md)
 - [Brute-force analysis](https://github.com/jennafrank/the-honeypots/blob/main/reports/brute-force-lm-analysis.md) and [architecture](https://github.com/jennafrank/the-honeypots/blob/main/ARCHITECTURE.md) on GitHub
 - [Source code and setup](https://github.com/jennafrank/the-honeypots)
 

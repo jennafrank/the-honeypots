@@ -63,7 +63,7 @@ These figures could not be reproduced exactly from the snapshot. They have been 
 
 ## Scope
 
-- The original PDF edition (`final/hot-pink-huntress-ssh-honeypot-report.pdf`) is unchanged and still shows the first-edition figures.
+- The PDF (`final/hot-pink-huntress-ssh-honeypot-report.pdf`) is the original edition (pre-correction) and still shows the first-edition figures. So does the snack report PDF (`final/snack-report.pdf`); its HTML version is corrected.
 - The HTML report on this site is the corrected edition.
 - The dashboard's "Commands" stat uses the same `SUM(command_count)`, so a fresh dashboard shows the inflated figure until the sensor's logging is changed.
 

@@ -115,7 +115,7 @@ Extreme concentration: **4 sources account for 90.5% of all sessions** — but t
 
 ## Findings: 147 Days on the Internet
 
-Full report: [SSH Honeypot Threat Intelligence Report, 147 Days](https://jennafrank.github.io/the-honeypots/report.html) (corrected edition; [original PDF](final/hot-pink-huntress-ssh-honeypot-report.pdf)). All figures exclude five operator and friendly-test addresses.
+Full report: [SSH Honeypot Threat Intelligence Report, 147 Days](https://jennafrank.github.io/the-honeypots/report.html) (corrected edition). PDF: [original edition (pre-correction)](final/hot-pink-huntress-ssh-honeypot-report.pdf); it still shows 414,070 commands, see the [command-count correction](docs/command-count-correction.md). All figures exclude five operator and friendly-test addresses.
 
 > **Correction (November 2026):** the first edition counted 414,070 commands. The sensor logs a chained command line once per part and again as a whole line, so that total double-counted. The corrected total is 370,429, and the miner script is 81 commands, not 93. Details: [command-count correction](docs/command-count-correction.md).
 
@@ -160,7 +160,7 @@ Sessions per technique. One session can map to several techniques. T1110 (Brute 
 
 ### Notable sessions
 
-- **The miner eviction squad.** 3,210 sessions from multiple source IPs ran the same 81-command script: stage in `/dev/shm`, write `w.sh`, persist through cron and a systemd unit named `watcher-netai.service`, kill competing miners, then drop a binary named `astats`. An `astats` binary in `/dev/shm` is a strong indicator of this campaign.
+- **The miner eviction squad.** 3,210 sessions (unverified, see [correction note](docs/command-count-correction.md#not-reproduced-left-as-published)) from multiple source IPs ran the same 81-command script: stage in `/dev/shm`, write `w.sh`, persist through cron and a systemd unit named `watcher-netai.service`, kill competing miners, then drop a binary named `astats`. An `astats` binary in `/dev/shm` is a strong indicator of this campaign.
 - **The credential-verification wave.** On May 22, one IP on AS174 (Cogent) logged in successfully 8,949 times in 8 hours and 10 minutes, running only the "ok" ping each time. Every login succeeded, so fail2ban-style tools that watch for failures would never flag it.
 - **The French backdoor factory.** Session `2b0e14c1` (June 18, AS42708 Glesys AB) fired 44 commands in under 80 seconds, then pasted a hand-built payload with French comments: OS detection across FreeBSD, Debian and Red Hat families, two hidden sudo users (`sys_admin` and `r00t`, homes under `/var/`), and bash history disabled. It scored highest on the dataset's severity scale.
 - **The five who found the wallet.** Only 5 sessions read the fake `wallet.json`. One (`f6385669`, June 3) got there by hand in 4 minutes, with typos (`cx ..`, `solona`) and a 97-second pause after reading the fake private keys.
@@ -296,7 +296,7 @@ Below are the trigger commands — but **not** what they do. That's for you to f
 | `honeypot/` | The sensor: SSH server, fake shell and filesystem, MITRE tagger, enrichment, SQLite storage |
 | `dashboard/` | Flask live dashboard |
 | `docs/` | GitHub Pages site: [`index.md`](docs/index.md), the corrected [full report](docs/report.html), the [correction note](docs/command-count-correction.md) and screenshots |
-| `final/` | Original PDF edition of the 147-day report and the short snack report |
+| `final/` | 147-day report PDF, original edition (pre-correction; see [correction note](docs/command-count-correction.md)), and the short snack report |
 | `analysis/` | Self-contained HTML deep-dive dashboards (153-day window) |
 | `reports/` | [Brute-force analysis](reports/brute-force-lm-analysis.md) |
 | `generate_report.py` | Markdown and PDF report generator |
