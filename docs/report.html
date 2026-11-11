@@ -537,7 +537,7 @@ ol li::marker {
     <span class="toc-title">Key Findings at a Glance</span>
     <span class="toc-dots"></span>
   </div>
-  <div class="toc-sub">136,128 sessions. 414,070 commands. 147 days.</div>
+  <div class="toc-sub">136,128 sessions. 370,429 commands. 147 days.</div>
   <div class="toc-entry">
     <span class="toc-num">04</span>
     <span class="toc-title">Attacker Infrastructure</span>
@@ -597,6 +597,11 @@ ol li::marker {
 <p><em>Jenna | Hot Pink Huntress</em></p>
 <hr />
 
+<div class="correction-box" style="background:#0f0f1a;border:1px solid #ffd700;border-radius:6px;padding:1.2em 2em;margin:2em 0;">
+<p style="color:#ffd700;font-family:monospace;font-size:0.85em;letter-spacing:0.15em;margin-bottom:0.75em;">// CORRECTION, NOVEMBER 2026</p>
+<p>The first edition reported 414,070 commands. The sensor logs a chained command line (parts joined by <code>; </code> or <code>&amp;&amp;</code>) once per part and then once more as a whole line, so that total counted the whole-line echoes twice. With the echoes removed, the total is <strong>370,429 commands</strong> (304,067 command lines as sent). The miner script is 81 commands, not 93. Tiers 3 and 4, top-commands rank 7 and the T1548.003 row are corrected to match. Session counts, IP counts and the other top commands are unchanged. Method and full before/after table: <a style="color:#ffd700;text-decoration:underline;" href="command-count-correction.html">command-count correction note</a>. The PDF is the original edition (pre-correction) and still shows 414,070.</p>
+</div>
+
 <div class="tldr-box" style="background:#0f0f1a;border:1px solid #ff2d78;border-radius:6px;padding:1.5em 2em;margin:2em 0;">
 <p style="color:#ff2d78;font-family:monospace;font-size:0.85em;letter-spacing:0.15em;margin-bottom:0.75em;">// TL;DR — FIVE THINGS TO KNOW</p>
 <ul style="margin-left:1.2em;">
@@ -613,7 +618,7 @@ ol li::marker {
 <hr />
 <div class="page-break"></div><h2><span class="section-num">Section 1</span>Executive Summary</h2>
 <p>For 147 calendar days, a server sat on the open internet with SSH port 22 exposed, pretending to be a Solana cryptocurrency validator node. It accepted every login attempt automatically, logged every command, and said nothing. No real data was at risk. The point was to watch: who shows up, what do they want, and how do they behave once they think they're in?</p>
-<p>Over that period, 6,145 unique IP addresses knocked on the door. They generated 136,128 sessions, tried 63,283 distinct username-and-password combinations, and issued 414,070 commands after gaining access. The server was hit with an average of 926 sessions every single day. The moment the honeypot went live, the first attacker arrived. Not hours later. The moment it went live.</p>
+<p>Over that period, 6,145 unique IP addresses knocked on the door. They generated 136,128 sessions, tried 63,283 distinct username-and-password combinations, and issued 370,429 commands after gaining access. The server was hit with an average of 926 sessions every single day. The moment the honeypot went live, the first attacker arrived. Not hours later. The moment it went live.</p>
 <p>The attackers were not, for the most part, sophisticated human hackers typing commands one by one. The vast majority of activity came from automated tools running credential wordlists and deployment scripts. The goal in most cases was cryptocurrency mining: get in, kill any competing miner already running, drop a new miner binary, set up persistence via cron and systemd, and leave. A smaller subset of sessions existed to validate whether a credential worked, with no exploitation attempted at all. At the far end of the spectrum, a handful of sessions showed genuine human operators conducting methodical reconnaissance and attempting to plant persistent backdoors.</p>
 <p>The single most actionable takeaway from this dataset: <strong>disable password-based SSH authentication.</strong> Nearly every session in this report was possible because the server accepted a password login (560 attempted public-key auth). Switch to SSH key authentication, and the attack surface for all of this activity drops to near zero.</p>
 <hr />
@@ -662,8 +667,8 @@ ol li::marker {
 <td>69,436 (51.0%)</td>
 </tr>
 <tr>
-<td>Total commands logged</td>
-<td>414,070</td>
+<td>Total commands (echo entries removed)</td>
+<td>370,429</td>
 </tr>
 <tr>
 <td>Return-visitor sessions</td>
@@ -693,8 +698,8 @@ ol li::marker {
     <span class="stat-lbl">Unique IPs</span>
   </div>
   <div class="stat-card">
-    <span class="stat-num">414,070</span>
-    <span class="stat-lbl">Commands Logged</span>
+    <span class="stat-num">370,429</span>
+    <span class="stat-lbl">Commands</span>
   </div>
   <div class="stat-card">
     <span class="stat-num">63,283</span>
@@ -966,32 +971,38 @@ nvidia-smi -q
 </tr>
 <tr>
 <td>7</td>
-<td><code>cd /dev/shm \|\| ... &amp;&amp; cat &gt; astats</code></td>
+<td><code>cd /dev/shm || cd /tmp || ... || cd /</code></td>
 <td>10,218</td>
-<td>Navigates to an in-memory filesystem (invisible to disk-based monitoring) and writes a binary named <code>astats</code>. This is the miner payload drop. The <code>cat &gt; astats</code> write operation appears in the same command chain; both forms represent the same campaign action.</td>
+<td>Moves into the first writable directory it finds, trying the in-memory <code>/dev/shm</code> first (invisible to disk-based monitoring). This is the first half of the miner payload drop. (Corrected: this row previously showed the whole chained line <code>cd /dev/shm || ... &amp;&amp; cat &gt; astats</code>, which exists only because the sensor logs a chained line once per part and again as a whole.)</td>
 </tr>
 <tr>
 <td>8</td>
-<td><code>uname -a</code></td>
-<td>4,778</td>
-<td>Standard system fingerprinting. Returns kernel version, architecture, and hostname.</td>
+<td><code>cat &gt; astats</code></td>
+<td>10,218</td>
+<td>The second half of the payload drop: writes a binary named <code>astats</code> from data sent over the SSH channel.</td>
 </tr>
 <tr>
 <td>9</td>
+<td><code>uname -a</code></td>
+<td>4,778 <span class="unverified" style="display:block;font-size:0.75em;color:#ffd700;">(unverified, see <a style="color:#ffd700;text-decoration:underline;" href="command-count-correction.html#not-reproduced-left-as-published">note</a>)</span></td>
+<td>Standard system fingerprinting. Returns kernel version, architecture, and hostname.</td>
+</tr>
+<tr>
+<td>10</td>
 <td><code>pwd</code></td>
 <td>4,106</td>
 <td>Confirms current working directory. Orientation check after login.</td>
 </tr>
 </tbody>
 </table></div>
-<p>Additional commands of note: <code>chmod +x w.sh</code> appeared 3,637 times (making a deployed shell script executable), crontab manipulation appeared 3,605 times (establishing scheduled persistence), and systemd unit writes appeared 3,590 times (creating a service that restarts the miner if it gets killed).</p>
+<p>Additional commands of note: <code>chmod +x w.sh</code> appeared 3,637 times (making a deployed shell script executable), crontab manipulation appeared 3,605 times <span class="unverified" style="font-size:0.75em;color:#ffd700;">(unverified, see <a style="color:#ffd700;text-decoration:underline;" href="command-count-correction.html#not-reproduced-left-as-published">correction note</a>)</span> (establishing scheduled persistence), and systemd unit writes appeared 3,590 times (creating a service that restarts the miner if it gets killed).</p>
 <p>The GPU-hunting commands from the first session (<code>lspci | grep VGA</code> and <code>nvidia-smi -q</code>) appear in a smaller subset of sessions. They signal attacker awareness that cryptocurrency mining benefits from GPU compute. The GPU-hunting commands are not specific to Solana — validators on the Solana network do not require GPU hardware. The attacker that connected first was not confused about what they were looking for.</p>
 <h3>5b. Three Tiers of Attacker Behavior</h3>
-<p>The 136,128 sessions split into four clean, non-overlapping tiers by command count. All four sum to the total.</p>
+<p>The 136,128 sessions split into four clean, non-overlapping tiers by command count (counted after removing echo entries; see the correction note). All four sum to the total.</p>
 <p><strong>Tier 1: Silent authenticators — 66,692 sessions (49.0%).</strong> These sessions connect, authenticate, run zero commands, and disconnect. The shell never received a single keystroke. These are pure credential probers: the tool confirms the password works and logs the result for later. Nothing was deployed; nothing was enumerated. Nearly half the dataset is this.</p>
 <p><strong>Tier 2: Single-command validators — 64,339 sessions (47.3%).</strong> One command, then gone. The canonical example is the 38[.]58[.]169[.]236 wave (8,949 sessions of <code>echo -e "\x6F\x6B"</code>) — a liveness check that confirms the shell is interactive. Other single-command sessions run <code>uname -a</code> or <code>id</code>. The goal is credential validation, not exploitation. Tiers 1 and 2 together account for 131,031 sessions — 96.3% of all activity.</p>
-<p><strong>Tier 3: Active recon and escalation — 1,073 sessions (0.8%).</strong> Two to twenty commands: directory exploration, process enumeration, network configuration review, credential harvesting from <code>/etc/passwd</code> and <code>/etc/shadow</code>. Some sessions attempt to establish persistent access through SSH key injection or account creation. Small in count, high in intent. A subset of these sessions show timing and behavioral signals consistent with human operators — see the Hands on the Keyboard section.</p>
-<p><strong>Tier 4: Deployment campaigns — 4,024 sessions (3.0%).</strong> More than 20 commands. This tier is dominated by the 93-command miner script (3,210 sessions): it deploys a cryptocurrency miner binary, sets cron and systemd persistence, and runs a kill-competitor loop. Within Tier 4 sits the French backdoor session — 44 commands in the first 80 seconds (connection remained open for 10 hours) — and the 383 sessions that wrote SSH authorized keys. Easter egg triggers provide a behavioral signal within this tier: 4,124 distinct sessions (spanning Tiers 3 and 4) triggered at least one trap. Among specific traps, 3,693 sessions triggered <code>run_payload</code>, 3,643 triggered <code>chmod_exe</code>, 311 triggered <code>passwd_harvest</code>, and 5 reached the <code>crown_jewel</code> wallet trap.</p>
+<p><strong>Tier 3: Active recon and escalation — 1,113 sessions (0.8%).</strong> Two to twenty commands: directory exploration, process enumeration, network configuration review, credential harvesting from <code>/etc/passwd</code> and <code>/etc/shadow</code>. Some sessions attempt to establish persistent access through SSH key injection or account creation. Small in count, high in intent. A subset of these sessions show timing and behavioral signals consistent with human operators — see the Hands on the Keyboard section.</p>
+<p><strong>Tier 4: Deployment campaigns — 3,984 sessions (2.9%).</strong> More than 20 commands. This tier is dominated by the 81-command miner script (3,210 sessions <span class="unverified" style="font-size:0.75em;color:#ffd700;">(unverified, see <a style="color:#ffd700;text-decoration:underline;" href="command-count-correction.html#not-reproduced-left-as-published">correction note</a>)</span>; the sensor logged each run as 93 entries): it deploys a cryptocurrency miner binary, sets cron and systemd persistence, and runs a kill-competitor loop. Within Tier 4 sits the French backdoor session — 44 commands in the first 80 seconds (connection remained open for 10 hours) — and the 383 sessions that wrote SSH authorized keys. Easter egg triggers provide a behavioral signal within this tier: 4,124 distinct sessions (spanning Tiers 3 and 4) triggered at least one trap. Among specific traps, 3,693 sessions triggered <code>run_payload</code>, 3,643 triggered <code>chmod_exe</code>, 311 triggered <code>passwd_harvest</code>, and 5 reached the <code>crown_jewel</code> wallet trap.</p>
 <h3>5c. Credentials They Tried</h3>
 <p><strong>Password patterns:</strong></p>
 <div class="table-wrap"><table>
@@ -1327,7 +1338,7 @@ nvidia-smi -q
 <tr><td>Account Discovery: Local Account (/etc/passwd only)</td><td>T1087.001</td><td>Discovery</td><td>132</td><td>0.1%</td></tr>
 <tr><td>Indicator Removal: Clear Command History</td><td>T1070.003</td><td>Defense Evasion</td><td>34</td><td>0.025%</td></tr>
 <tr><td>Impair Defenses: Impair Command History Logging</td><td>T1562.003</td><td>Defense Evasion</td><td>34</td><td>0.025%</td></tr>
-<tr><td>Abuse Elevation Control Mechanism: Sudo</td><td>T1548.003</td><td>Privilege Escalation</td><td>29</td><td>0.021%</td></tr>
+<tr><td>Abuse Elevation Control Mechanism: Sudo</td><td>T1548.003</td><td>Privilege Escalation</td><td>28</td><td>0.021%</td></tr>
 <tr><td>Create Account: Local Account</td><td>T1136.001</td><td>Persistence</td><td>25</td><td>0.018%</td></tr>
 <tr><td>Command and Scripting Interpreter: Python</td><td>T1059.006</td><td>Execution</td><td>12</td><td>0.009%</td></tr>
 </tbody>
@@ -1347,7 +1358,7 @@ nvidia-smi -q
 <p>The entire payload was constructed to produce no stdout output. Every command was redirected to <code>/dev/null</code> or suppressed. An observer watching terminal output would see nothing happen.</p>
 <p>This session scored 8 on the dataset's internal severity scale, the highest assigned score. The execution was automated — all 44 commands fired in under 80 seconds from a standard recon template — but the payload itself was clearly hand-crafted: full French-language inline comments, multi-distribution OS detection logic, and proper error handling. Most commodity attack tooling is written in English and pulled from shared repositories. This script reads like something built by a specific operator for their own use. The attacker demonstrated awareness of stealth techniques (hidden directories in <code>/var</code>, suppressed output, history deletion) and privilege escalation paths across multiple Linux distributions. The automation means this operator was not typing in real time, but someone did the engineering work.</p>
 <h3>8b. The Miner Eviction Squad</h3>
-<p>3,210 sessions across multiple source IPs ran an identical 93-command script. The script's internal logic is consistent enough that it almost certainly originated from a shared source: a GitHub repository, an underground forum post, or a direct toolkit transfer between operators.</p>
+<p>3,210 sessions <span class="unverified" style="font-size:0.75em;color:#ffd700;">(unverified, see <a style="color:#ffd700;text-decoration:underline;" href="command-count-correction.html#not-reproduced-left-as-published">correction note</a>)</span> across multiple source IPs ran an identical 81-command script (logged by the sensor as 93 entries per run). The script's internal logic is consistent enough that it almost certainly originated from a shared source: a GitHub repository, an underground forum post, or a direct toolkit transfer between operators.</p>
 <p>The script executes in a fixed sequence. First, <code>uname</code> and related commands fingerprint the system. Second, the script searches for a writable directory, with <code>/dev/shm</code> as the preferred target (it is an in-memory filesystem, meaning the dropped files do not touch disk and are invisible to disk-based monitoring tools). Third, the script writes <code>w.sh</code> inline using <code>cat</code> with a heredoc, then runs <code>chmod +x w.sh</code> to make it executable. Fourth, the script establishes two persistence mechanisms: a crontab entry and a systemd unit file named <code>watcher-netai.service</code>. The systemd unit watches for the miner process and restarts it if killed. Fifth, the script runs a kill-competitor loop, repeating 12 or more times: <code>readlink -f /proc/root/exe</code> followed by <code>kill -9 root</code>, then <code>readlink -f /proc/solana/exe</code> followed by <code>kill -9 solana</code>. Finally, the script drops a binary named <code>astats</code> into <code>/dev/shm</code>.</p>
 <p>The <code>kill -9 solana</code> command requires context. The miner script does not know the Solana service PID directly. Instead, it reads usernames from the fake <code>ps aux</code> output — "root" and "solana" — and passes them to both <code>readlink -f /proc/&lt;username&gt;/exe</code> and <code>kill -9 &lt;username&gt;</code>. On real Linux, <code>/proc/</code> directories are numbered by PID, so <code>/proc/solana/exe</code> does not exist and <code>kill -9 solana</code> (which expects a numeric PID) would fail. These commands are a honeypot artifact: the custom fake shell responded to <code>/proc/root/exe</code> and <code>/proc/solana/exe</code> as if they were valid paths, producing logged output that doesn't reflect what would happen on a real target. On actual compromised servers, this script correctly resolves numeric PIDs from <code>ps</code> output. The kill loop is generic competitor-eviction — any miner running as a user named "solana" would be targeted, regardless of whether Solana-the-blockchain is involved.</p>
 <p>The <code>astats</code> binary name is an indicator of compromise. Any server with an <code>astats</code> binary in <code>/dev/shm</code> or another temp-filesystem location should treat it as a strong signal of this campaign.</p>
@@ -1408,7 +1419,7 @@ nvidia-smi -q
 <p>None of the five navigated using <code>find</code> or <code>grep</code> on wallet filenames — all either browsed directory-by-directory or already knew the path. Three of the five used <code>ls</code> to orient before opening any file. The RouterHosting session (<code>f6385669</code>) found the wallet in 4 minutes of manual exploration; the Verizon session (<code>a164ca21</code>) got there in 3 commands.</p>
 <hr />
 <div class="page-break"></div><h2><span class="section-num">Section 9</span>Hands on the Keyboard</h2>
-<p>Most of what happens in this dataset is automation on top of automation: scanners finding open ports, tools validating credentials, scripts running the same 93 commands in sequence. But a small number of sessions have timing, behavior, and mistakes that point to a human being at the other end. Here are the ones worth naming.</p>
+<p>Most of what happens in this dataset is automation on top of automation: scanners finding open ports, tools validating credentials, scripts running the same 81 commands in sequence. But a small number of sessions have timing, behavior, and mistakes that point to a human being at the other end. Here are the ones worth naming.</p>
 <p><em>Methodology: sessions were scored on five signals — inter-command timing variance, shell escape attempts, typos and corrections, reactive navigation (commands that reference output from prior responses), and behavioral uniqueness. Timing was computed from the events table timestamps. All sessions below were reviewed command-by-command. Confidence labels are: "likely human or AI-driven agent" where timing is consistent but automation cannot be ruled out; "likely human" where multiple non-timing signals converge. IPs on residential and business ISPs are withheld; only ISP and region are shown.</em></p>
 
 <h3>The Explorer — Washington DC metro area, Verizon FiOS</h3>
@@ -1551,10 +1562,10 @@ test -f /run/.containerenv                       # Podman container check</pre>
 <p><strong>Geolocation carries uncertainty.</strong> IP-to-country attribution uses the registered location of the IP block, not the physical location of the device or operator. VPNs, proxy servers, and Tor exit nodes can place an attack's apparent origin in a country that has nothing to do with the actual operator. Country-level statistics in this report describe where traffic came from, not where attackers are.</p>
 <p><strong>Comparison to prior reports requires caution.</strong> This report is the definitive record of the full 147-day run. Interim reports produced during the run period used different exclusion sets, different run-length denominators, and in some cases included the 38[.]58[.]169[.]236 sessions in hourly distribution data. Numbers from prior reports should not be compared to numbers in this report without accounting for these differences.</p>
 <p><strong>The shell simulation affects command data.</strong> The honeypot responded to commands with scripted output, not real system responses. Attackers may have issued different follow-on commands than they would have on a real system based on the simulated responses they received. Command counts and sequences reflect behavior in a simulated environment.</p>
-<p><strong>The miner campaign skews command-count statistics.</strong> The 93-command miner deployment script ran in 3,210 sessions, contributing a concentrated volume of specific commands. Any command that appears in that script (readlink, kill, chmod, crontab operations, systemd writes) is skewed upward in the overall command frequency table. The top-10 command list is partially a portrait of that single campaign rather than a representative cross-section of all attacker activity.</p>
+<p><strong>The miner campaign skews command-count statistics.</strong> The 81-command miner deployment script ran in 3,210 sessions <span class="unverified" style="font-size:0.75em;color:#ffd700;">(unverified, see <a style="color:#ffd700;text-decoration:underline;" href="command-count-correction.html#not-reproduced-left-as-published">correction note</a>)</span>, contributing a concentrated volume of specific commands. Any command that appears in that script (readlink, kill, chmod, crontab operations, systemd writes) is skewed upward in the overall command frequency table. The top-10 command list is partially a portrait of that single campaign rather than a representative cross-section of all attacker activity.</p>
 <hr />
 <div class="page-break"></div><h2>Closing</h2>
-<p>147 days of data collected while doing absolutely nothing except existing on the internet with port 22 open. No provocation. No interaction. Just presence. The internet sent 136,128 sessions, 414,070 commands, and one very motivated French-speaking backdoor architect who probably thought they were having a great Thursday.</p>
+<p>147 days of data collected while doing absolutely nothing except existing on the internet with port 22 open. No provocation. No interaction. Just presence. The internet sent 136,128 sessions, 370,429 commands, and one very motivated French-speaking backdoor architect who probably thought they were having a great Thursday.</p>
 <p>The lesson is the same one it has always been, and it will still be the same lesson in 147 more days: password authentication on SSH is a door that millions of automated tools know how to knock on, and they will never stop knocking</p>
 <p>Jenna | Hot Pink Huntress</p>
 </div>

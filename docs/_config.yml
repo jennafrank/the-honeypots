@@ -1,0 +1,6 @@
+title: The Honeypots
+description: A custom Python SSH honeypot, 147 days on the internet, and what attackers did once they got in.
+theme: jekyll-theme-cayman
+author: Jenna Frank (Hot Pink Huntress)
+exclude:
+  - "*.DS_Store"
